@@ -1,10 +1,241 @@
-
 /* ============================================================
-   NYUMBAKE — EXTENDED UI DESIGN SYSTEM
-   Add below the existing styles in assets/css/styles.css
+   NYUMBAKE — styles.css
+
+   CONTENTS
+   1. Design tokens (:root)
+   2. Base / reset
+   3. Layout utilities (.container, .wrap, .section)
+   4. Navigation — two systems currently in use, see note below
+   5. Hero + search panel
+   6. Buttons
+   7. Forms
+   8. Cards (listings)
+   9. Browse page (filters + results)
+   10. Property details, dashboard, auth — prepared for pages
+       not built yet (property-details.html, landlord-dashboard.html)
+   11. Footer
+   12. Responsive breakpoints
+
+   TWO NAVIGATION SYSTEMS: index.html and tenant-browse.html use the
+   "site-header / nav-container / brand" system. landlord-signup.html
+   and property-upload.html still use the earlier "header.masthead /
+   .mark" system. Both are kept below — they don't conflict, but they
+   ARE two different designs for the same job. Worth unifying once
+   those two landlord pages get revisited.
    ============================================================ */
 
-/* ---------- Additional design tokens ---------- */
+:root {
+  --primary: #0B3D2E;
+  --secondary: #16A34A;
+  --accent: #F59E0B;
+  --light: #F8FAFC;
+  --dark: #1F2937;
+  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  /* aliases for pages built under the old ledger palette */
+  --navy: var(--primary);
+  --navy-soft: var(--secondary);
+  --paper: var(--light);
+  --paper-raised: #ffffff;
+  --stamp: var(--secondary);
+  --stamp-dark: #0f7a3a;
+  --moss: var(--secondary);
+  --line: #E2E8F0;
+  --ink-on-paper: var(--dark);
+  --muted: #64748B;
+
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--light);
+  color: var(--ink-on-paper);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+header.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+  margin-bottom: 40px;
+}
+
+header.masthead .mark {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+}
+header.masthead .mark span { color: var(--secondary); }
+header.masthead .sub { font-size: 13px; color: var(--muted); }
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: var(--primary);
+}
+
+p.lede { color: var(--muted); font-size: 15px; margin: 0 0 36px; max-width: 46ch; }
+
+/* Ledger step tabs (landlord signup) */
+.ledger { display: flex; gap: 2px; margin-bottom: 32px; border-bottom: 1px solid var(--line); }
+.ledger .tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 12px; color: var(--muted); border-bottom: 3px solid transparent; }
+.ledger .tab.active { color: var(--primary); border-bottom-color: var(--secondary); font-weight: 600; }
+.ledger .tab.done { color: var(--secondary); }
+
+/* Cards / panels */
+.panel {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.panel h2 { font-family: var(--font-display); font-size: 19px; font-weight: 600; margin: 0 0 4px; color: var(--primary); }
+.panel .hint { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+
+label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-on-paper); margin-bottom: 6px; }
+label .optional { font-weight: 400; color: var(--muted); }
+
+input[type="text"], input[type="tel"], input[type="number"], input[type="email"], select {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-on-paper);
+  margin-bottom: 16px;
+}
+input:focus, select:focus, button:focus-visible { outline: 2px solid var(--secondary); outline-offset: 1px; }
+
+.field-row { display: flex; gap: 12px; }
+.field-row > div { flex: 1; }
+
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 14px; }
+.checkbox-row input { margin: 0; }
+
+button.primary {
+  background: var(--secondary);
+  color: #fff;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+button.primary:hover { background: #128a3e; }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button.ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--line);
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+
+/* OAuth buttons (tenant auth) */
+button.oauth {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--dark);
+  border: 1px solid var(--line);
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+button.oauth:hover { background: #f8fafc; }
+
+/* Photo upload slots */
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.photo-slot {
+  aspect-ratio: 1;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--muted); text-align: center; padding: 6px;
+  cursor: pointer; position: relative; overflow: hidden; background: #fff;
+}
+.photo-slot.required::after { content: "required"; position: absolute; top: 4px; right: 4px; font-size: 9px; color: var(--accent); font-weight: 600; }
+.photo-slot.filled { border-style: solid; border-color: var(--secondary); }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+
+.stamp-mark { display: inline-flex; align-items: center; gap: 6px; color: var(--secondary); font-size: 13px; font-weight: 600; }
+
+.status-msg { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+.status-msg.error { background: #FEE2E2; color: #B91C1C; }
+.status-msg.ok { background: #DCFCE7; color: #15803D; }
+
+.unit-block { border-top: 1px dashed var(--line); padding-top: 20px; margin-top: 20px; }
+.unit-block .remove { float: right; font-size: 12px; color: #DC2626; cursor: pointer; background: none; border: none; }
+
+/* Listing cards (tenant browse) */
+.listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 24px 0; }
+.listing-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; }
+.listing-card .photo { aspect-ratio: 4/3; background: #E2E8F0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
+.listing-card .photo img { width: 100%; height: 100%; object-fit: cover; }
+.listing-card .body { padding: 14px; }
+.listing-card .type-tag { font-size: 11px; color: var(--secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.listing-card .name { font-family: var(--font-display); font-size: 17px; color: var(--primary); margin: 4px 0; font-weight: 600; }
+.listing-card .city { font-size: 13px; color: var(--muted); }
+.listing-card .price { font-size: 16px; font-weight: 700; margin-top: 8px; color: var(--dark); }
+.listing-card .price span { font-weight: 400; color: var(--muted); font-size: 13px; }
+.listing-card .photo { position: relative; }
+.listing-card .for-rent-tag {
+  position: absolute; top: 10px; left: 10px;
+  background: var(--secondary); color: #fff; font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 999px;
+}
+
+/* Shared top navigation (tenant-facing pages) */
+nav.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 24px; border-bottom: 1px solid var(--line);
+}
+nav.topbar .mark { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--primary); }
+nav.topbar .mark span { color: var(--secondary); }
+nav.topbar .links { display: flex; gap: 20px; align-items: center; font-size: 14px; }
+nav.topbar .links a { color: var(--dark); text-decoration: none; }
+nav.topbar .links a.cta { background: var(--secondary); color: #fff; padding: 8px 18px; border-radius: 999px; }
+/* ---------- Extended tokens (shadows, radii, surface/text aliases) ---------- */
 
 :root {
   --primary-dark: #082f25;
@@ -14,9 +245,9 @@
 
   --surface: #ffffff;
   --surface-soft: #f1f5f3;
-  --border: #e2e8f0;
-  --text-main: #1f2937;
-  --text-muted: #64748b;
+  --border: var(--line);
+  --text-main: var(--dark);
+  --text-muted: var(--muted);
 
   --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.09);
@@ -212,32 +443,33 @@ button {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  min-height: 40px;
-  padding: 0 17px;
-  border-radius: 9px;
+  min-height: 30px;
+  padding: 7px 16px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .nav-login {
   color: var(--primary);
-  border: 1px solid var(--line);
+  border: 1px solid #e5e7eb;
   background: white;
 }
 
 .nav-login:hover {
-  background: var(--surface-soft);
+  background: #f1f5f9;
 }
 
 .nav-signup {
   color: white;
-  background: var(--secondary);
-  border: 1px solid var(--secondary);
+  background: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .nav-signup:hover {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: #14532d;
+  border-color: #14532d;
 }
 
 .menu-toggle {
@@ -407,9 +639,11 @@ button {
 
 .search-panel {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr auto;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: end;
   gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 22px;
   background: white;
   border: 1px solid var(--line);
@@ -449,8 +683,18 @@ button {
 }
 
 .search-submit {
-  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 18px;
   white-space: nowrap;
+  color: #ffffff;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 /* ---------- Trust / feature strip ---------- */
@@ -534,6 +778,9 @@ button {
 }
 
 .property-badge {
+  /* NOTE: unused — current card renderers don't add this tag.
+     Matches the styling favorite-btn below would need if/when
+     saved-properties ships. */
   position: absolute;
   top: 12px;
   left: 12px;
@@ -601,79 +848,10 @@ button {
   font-size: 12px;
 }
 
-/* ---------- Browse page and filters ---------- */
+/* ---------- Browse page filters ---------- */
 
-.browse-layout {
-  display: grid;
-  grid-template-columns: 245px minmax(0, 1fr);
-  align-items: start;
-  gap: 26px;
-  padding: 35px 0 70px;
-}
-
-.filter-panel {
-  position: sticky;
-  top: 95px;
-  padding: 20px;
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.filter-panel h2 {
-  margin: 0 0 20px;
-  color: var(--primary);
-  font-family: var(--font-display);
-  font-size: 20px;
-}
-
-.filter-group {
-  padding: 16px 0;
-  border-top: 1px solid var(--line);
-}
-
-.filter-group h3 {
-  margin: 0 0 12px;
-  font-size: 13px;
-}
-
-.filter-option {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 10px 0;
-  color: var(--text-muted);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.filter-option input {
-  accent-color: var(--secondary);
-}
-
-.browse-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.browse-toolbar p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.browse-toolbar select {
-  width: auto;
-  min-width: 140px;
-  margin: 0;
-  padding: 9px 12px;
-}
-
-/* ---------- Property details ---------- */
+/* ---------- Property details ----------
+   Prepared for property-details.html — not built yet. */
 
 .property-details {
   padding: 30px 0 70px;
@@ -772,7 +950,11 @@ button {
   line-height: 1.65;
 }
 
-/* ---------- Authentication pages ---------- */
+/* ---------- Authentication pages ----------
+   NOTE: currently unused. tenant-signup.html has its own inline
+   <style> block (.auth-shell/.auth-side/.tabs) instead of these
+   classes. Keeping this in case you want to move that page's
+   styles into this shared file later — delete if not. */
 
 .auth-layout {
   min-height: calc(100vh - 74px);
@@ -869,7 +1051,8 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
-/* ---------- Dashboard ---------- */
+/* ---------- Dashboard ----------
+   Prepared for landlord-dashboard.html — not built yet. */
 
 .dashboard-layout {
   min-height: 100vh;
@@ -1243,14 +1426,8 @@ button {
     gap: 12px;
   }
 
-  .browse-layout {
-    grid-template-columns: 1fr;
-    gap: 18px;
+  .browse-results {
     padding-top: 25px;
-  }
-
-  .filter-panel {
-    position: static;
   }
 
   .details-layout {
@@ -1432,13 +1609,9 @@ button {
     aspect-ratio: 5 / 3;
   }
 
-  .browse-toolbar {
-    align-items: flex-start;
+  .results-heading {
     flex-direction: column;
-  }
-
-  .browse-toolbar select {
-    width: 100%;
+    align-items: flex-start;
   }
 
   .gallery {
@@ -1531,52 +1704,15 @@ button {
 }
 
 
-/* ================= BUTTON VISIBILITY FIXES ================= */
+/* ================= Hero buttons ================= */
 
-/* Navbar buttons */
-.nav-actions .nav-login {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 20px;
-  color: var(--primary, #0B3D2E);
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.nav-actions .nav-signup {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 20px;
-  color: #ffffff;
-  background: var(--primary, #0B3D2E);
-  border: 1px solid var(--primary, #0B3D2E);
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.nav-actions .nav-login:hover {
-  background: #f1f5f9;
-}
-
-.nav-actions .nav-signup:hover {
-  background: #14532d;
-  border-color: #14532d;
-}
-
-/* Hero buttons */
 .hero-actions .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 48px;
-  padding: 12px 20px;
+  min-height: 30px;
+  padding: 8px 18px;
   border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
@@ -1594,44 +1730,8 @@ button {
   border-color: #ffffff;
 }
 
-/* ================= SEARCH PANEL FIX ================= */
+/* Search panel responsive breakpoints */
 
-.search-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 14px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.search-field {
-  min-width: 0;
-}
-
-.search-field input,
-.search-field select {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.search-submit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 46px;
-  padding: 12px 18px;
-  white-space: nowrap;
-  color: #ffffff;
-  background: var(--primary, #0B3D2E);
-  border: 1px solid var(--primary, #0B3D2E);
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-/* Tablet and mobile layout */
 @media (max-width: 900px) {
   .search-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1655,18 +1755,6 @@ button {
     width: 100%;
   }
 }
-/* Reduce button heights */
-.nav-actions .nav-login,
-.nav-actions .nav-signup {
-  min-height: 30px;
-  padding: 7px 16px;
-}
-
-.hero-actions .btn {
-  min-height: 30px;
-  padding: 8px 18px;
-}
-
 /* ================= TENANT BROWSE PAGE ================= */
 
 .browse-main {
