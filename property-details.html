@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="View rental details on NYUMBAKE — rent, deposit, and photos direct from the landlord.">
+  <title>Property details | NYUMBAKE</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="container nav-container" aria-label="Main navigation">
+      <a href="index.html" class="brand" aria-label="NYUMBAKE Home">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        NYUMBA<span>KE</span>
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tenant-browse.html" class="active">Browse homes</a></li>
+        <li><a href="landlord-signup.html">List your property</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="tenant-signup.html" class="nav-login">Log in</a>
+        <a href="tenant-signup.html" class="nav-signup">Get started</a>
+        <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Open navigation menu" aria-controls="nav-links" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="property-details container">
+
+    <div id="loading-state" class="empty-state">
+      <p>Loading listing…</p>
+    </div>
+
+    <div id="not-found-state" class="empty-state" style="display:none">
+      <div class="empty-state-icon" aria-hidden="true">⌂</div>
+      <h3>Listing not found</h3>
+      <p>This listing may have been removed, or the link is outdated.</p>
+      <a href="tenant-browse.html" class="btn btn-primary">Browse other homes</a>
+    </div>
+
+    <div id="details-content" style="display:none">
+
+      <div id="availability-banner" class="status-msg" style="display:none; margin-bottom:16px"></div>
+
+      <div id="gallery" class="gallery"></div>
+
+      <div class="details-layout">
+        <div class="details-main">
+          <div class="type-tag" id="unit-type-tag" style="color:var(--secondary); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.03em; margin-bottom:6px"></div>
+          <h1 id="property-name"></h1>
+          <div class="details-location" id="property-city"></div>
+          <div class="details-price">
+            <span id="rent-amount"></span>
+            <span>/ month</span>
+          </div>
+          <p id="detail-lines" style="color:var(--muted); font-size:13px"></p>
+          <p style="color:var(--muted); font-size:13px; margin-top:16px">
+            Exact location and landlord contact details are shared once you confirm interest below — this keeps landlords from being contacted by people who haven't seen the real price and photos first.
+          </p>
+        </div>
+
+        <div class="contact-panel">
+          <h2>Interested in this property?</h2>
+          <p>Get the exact location and the landlord's contact details.</p>
+          <button type="button" class="btn btn-primary btn-block" id="contact-btn">Get contact details</button>
+          <p id="contact-status" class="status-msg" style="display:none; margin-top:12px"></p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <a href="index.html" class="brand">NYUMBA<span>KE</span></a>
+      <p>Find your place. Connect directly.</p>
+      <span class="footer-copy">&copy; 2026 NYUMBAKE. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script type="module" src="js/property-details.js"></script>
+  <script>
+    const menuToggle = document.getElementById("menu-toggle");
+    const navLinks = document.getElementById("nav-links");
+    menuToggle?.addEventListener("click", () => {
+      const isOpen = navLinks.classList.toggle("open");
+      menuToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+  </script>
+
+</body>
+</html>

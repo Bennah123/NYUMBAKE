@@ -381,16 +381,8 @@ button {
   letter-spacing: -0.5px;
 }
 
-.brand-icon {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  color: white;
-  background: var(--primary);
-  border-radius: 10px;
-  font-family: var(--font-body);
-  font-size: 19px;
+.brand svg {
+  flex-shrink: 0;
 }
 
 .brand span {
@@ -1216,6 +1208,10 @@ button {
   padding-bottom: 35px;
 }
 
+.footer-brand .brand {
+  color: white;
+}
+
 .footer-brand p {
   max-width: 300px;
   margin: 14px 0 0;
@@ -1500,11 +1496,6 @@ button {
 
   .brand {
     font-size: 19px;
-  }
-
-  .brand-icon {
-    width: 32px;
-    height: 32px;
   }
 
   .nav-actions {
