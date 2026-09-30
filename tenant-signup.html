@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYUMBAKE — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+  body { margin: 0; }
+  .auth-shell { display: flex; min-height: 100vh; }
+  .auth-side {
+    flex: 1;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 48px;
+  }
+  .auth-side .mark { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 20px; margin-bottom: auto; }
+  .auth-side .mark span { color: var(--secondary); }
+  .auth-side h2 { font-family: var(--font-display); font-size: 28px; margin: 0 0 8px; }
+  .auth-side p { color: #CBD5C0; font-size: 14px; margin: 0; }
+  .auth-form-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .auth-card { width: 100%; max-width: 380px; }
+  .tabs { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+  .tabs button {
+    flex: 1; background: none; border: none; padding: 12px 0; font-size: 14px; font-weight: 600;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+  }
+  .tabs button.active { color: var(--primary); border-bottom-color: var(--secondary); }
+  .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; margin: 18px 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .switch-line { text-align: center; font-size: 13px; color: var(--muted); margin-top: 16px; }
+  .switch-line a { color: var(--secondary); font-weight: 600; text-decoration: none; cursor: pointer; }
+  @media (max-width: 760px) { .auth-side { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-side">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>NYUMBA<span>KE</span></div>
+    <h2>Your next home is just a click away.</h2>
+    <p>Browse real listings, direct from landlords across Nairobi.</p>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+      <div class="tabs">
+        <button type="button" id="tab-login" class="active">Login</button>
+        <button type="button" id="tab-signup">Sign Up</button>
+      </div>
+
+      <div id="status" class="status-msg" style="display:none"></div>
+
+      <form id="login-form">
+        <label for="li_email">Email</label>
+        <input type="email" id="li_email" placeholder="you@example.com">
+        <label for="li_password">Password</label>
+        <input type="text" id="li_password" placeholder="Enter your password" style="-webkit-text-security:disc; text-security:disc">
+        <button type="submit" class="primary" style="width:100%; margin-bottom:14px">Login</button>
+        <div class="divider">or</div>
+        <button type="button" class="oauth" id="li_google">Continue with Google</button>
+        <button type="button" class="oauth" id="li_facebook">Continue with Facebook</button>
+        <div class="switch-line">Don't have an account? <a id="to-signup">Sign up</a></div>
+      </form>
+
+      <form id="signup-form" style="display:none">
+        <label for="su_name">Full name</label>
+        <input type="text" id="su_name" placeholder="As landlords will see it">
+        <label for="su_email">Email</label>
+        <input type="email" id="su_email" placeholder="you@example.com">
+        <label for="su_password">Password</label>
+        <input type="text" id="su_password" placeholder="At least 8 characters" style="-webkit-text-security:disc; text-security:disc">
+        <button type="submit" class="primary" style="width:100%; margin-bottom:14px">Create account</button>
+        <div class="divider">or</div>
+        <button type="button" class="oauth" id="su_google">Continue with Google</button>
+        <button type="button" class="oauth" id="su_facebook">Continue with Facebook</button>
+        <div class="switch-line">Already have an account? <a id="to-login">Login</a></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from './js/supabase-client.js';
+
+  const statusEl = document.getElementById('status');
+  const showStatus = (msg, type) => {
+    statusEl.textContent = msg;
+    statusEl.className = `status-msg ${type}`;
+    statusEl.style.display = 'block';
+  };
+
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const tabLogin = document.getElementById('tab-login');
+  const tabSignup = document.getElementById('tab-signup');
+
+  function showLogin() {
+    loginForm.style.display = 'block';
+    signupForm.style.display = 'none';
+    tabLogin.classList.add('active');
+    tabSignup.classList.remove('active');
+    statusEl.style.display = 'none';
+  }
+  function showSignup() {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+    tabSignup.classList.add('active');
+    tabLogin.classList.remove('active');
+    statusEl.style.display = 'none';
+  }
+  tabLogin.addEventListener('click', showLogin);
+  tabSignup.addEventListener('click', showSignup);
+  document.getElementById('to-signup').addEventListener('click', showSignup);
+  document.getElementById('to-login').addEventListener('click', showLogin);
+
+  const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || 'tenant-browse.html';
+
+  async function ensureTenantProfile(user, fallbackName) {
+    const { error } = await supabase.from('tenants').upsert({
+      id: user.id,
+      full_name: user.user_metadata?.full_name || fallbackName || user.email,
+      email: user.email,
+    });
+    if (error) console.error('tenant profile upsert failed:', error.message);
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('li_email').value.trim();
+    const password = document.getElementById('li_password').value;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return showStatus(error.message, 'error');
+    await ensureTenantProfile(data.user);
+    window.location.href = redirectTarget;
+  });
+
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('su_name').value.trim();
+    const email = document.getElementById('su_email').value.trim();
+    const password = document.getElementById('su_password').value;
+    if (!full_name) return showStatus('Enter your full name.', 'error');
+    if (password.length < 8) return showStatus('Password must be at least 8 characters.', 'error');
+
+    const { data, error } = await supabase.auth.signUp({
+      email, password, options: { data: { full_name } },
+    });
+    if (error) return showStatus(error.message, 'error');
+
+    if (data.user) {
+      await ensureTenantProfile(data.user, full_name);
+      window.location.href = redirectTarget;
+    } else {
+      showStatus('Check your email to confirm your account.', 'ok');
+    }
+  });
+
+  function oauth(provider) {
+    return () => supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}${window.location.pathname}?redirect=${encodeURIComponent(redirectTarget)}` },
+    });
+  }
+  document.getElementById('li_google').addEventListener('click', oauth('google'));
+  document.getElementById('li_facebook').addEventListener('click', oauth('facebook'));
+  document.getElementById('su_google').addEventListener('click', oauth('google'));
+  document.getElementById('su_facebook').addEventListener('click', oauth('facebook'));
+
+  // Coming back from an OAuth redirect: session exists, profile may not yet.
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    if (session) {
+      await ensureTenantProfile(session.user);
+      window.location.href = redirectTarget;
+    }
+  });
+</script>
+</body>
+</html>

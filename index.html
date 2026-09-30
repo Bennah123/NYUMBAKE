@@ -39,7 +39,8 @@
     gap: 16px;
   }
   .badge { text-align: center; padding: 16px; }
-  .badge .icon { font-size: 22px; margin-bottom: 6px; }
+  .badge .icon { margin-bottom: 8px; display: flex; justify-content: center; color: var(--secondary); }
+  .badge .icon svg { width: 32px; height: 32px; }
   .badge .label { font-weight: 600; font-size: 14px; color: var(--primary); }
   .section { max-width: 960px; margin: 0 auto; padding: 0 24px 48px; }
   .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
@@ -75,7 +76,7 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 16px 24px; border-bottom: 1px solid var(--line);
   }
-  nav.topbar .mark { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--primary); }
+  nav.topbar .mark { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--primary); }
   nav.topbar .mark span { color: var(--secondary); }
   nav.topbar .links { display: flex; gap: 20px; align-items: center; font-size: 14px; }
   nav.topbar .links a { color: var(--dark); text-decoration: none; }
@@ -85,7 +86,7 @@
 <body>
 
 <nav class="topbar">
-  <div class="mark">NYUMBA<span>KE</span></div>
+  <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>NYUMBA<span>KE</span></div>
   <div class="links">
     <a href="index.html">Home</a>
     <a href="tenant-browse.html">Browse</a>
@@ -134,10 +135,10 @@
 </div>
 
 <div class="badges">
-  <div class="badge"><div class="icon">🏠</div><div class="label">Direct from landlords</div></div>
-  <div class="badge"><div class="icon">🚫</div><div class="label">No broker fees</div></div>
-  <div class="badge"><div class="icon">💰</div><div class="label">Transparent pricing</div></div>
-  <div class="badge"><div class="icon">📍</div><div class="label">Nairobi launch</div></div>
+  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg></div><div class="label">Direct from landlords</div></div>
+  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"/></svg></div><div class="label">No broker fees</div></div>
+  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4L11 3.8A2 2 0 0 0 9.2 3H4a1 1 0 0 0-1 1v5.2a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg></div><div class="label">Transparent pricing</div></div>
+  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.5 7-12a7 7 0 1 0-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></div><div class="label">Nairobi launch</div></div>
 </div>
 
 <div class="section">

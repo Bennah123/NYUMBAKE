@@ -103,6 +103,19 @@ create table if not exists property_audit_log (
   created_at timestamptz not null default now()
 );
 
+-- ----Tenant-facing profile table. ----
+create table if not exists tenants (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text not null,
+  email text not null unique,
+  created_at timestamptz not null default now()
+);
+alter table tenants enable row level security;
+create policy "tenant reads own profile" on tenants for select using (auth.uid() = id);
+create policy "tenant updates own profile" on tenants for update using (auth.uid() = id);
+create policy "tenant creates own profile" on tenants for insert with check (auth.uid() = id);
+
+-- ---- Public-facing view of listings, with sensitive landlord info stripped out. ----
 create or replace view public_listings as
 select
   u.id as unit_id, u.unit_type, u.size_label, u.rent, u.deposit,
