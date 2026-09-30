@@ -1,225 +1,512 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NYUMBAKE — Find your next home in Nairobi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/styles.css">
-<style>
-  .hero {
-    background: var(--primary);
-    color: #fff;
-    padding: 64px 24px 48px;
-    text-align: left;
-  }
-  .hero-inner { max-width: 760px; margin: 0 auto; }
-  .hero h1 { color: #fff; font-size: 40px; margin-bottom: 12px; }
-  .hero h1 span { color: var(--secondary); }
-  .hero p { color: #CBD5C0; font-size: 15px; max-width: 44ch; margin-bottom: 28px; }
-  .search-panel {
-    background: #fff;
-    border-radius: var(--radius);
-    box-shadow: var(--card-shadow);
-    padding: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-end;
-  }
-  .search-panel > div { flex: 1; min-width: 140px; }
-  .search-panel label { color: var(--dark); }
-  .badges {
-    max-width: 960px;
-    margin: 40px auto;
-    padding: 0 24px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-  }
-  .badge { text-align: center; padding: 16px; }
-  .badge .icon { margin-bottom: 8px; display: flex; justify-content: center; color: var(--secondary); }
-  .badge .icon svg { width: 32px; height: 32px; }
-  .badge .label { font-weight: 600; font-size: 14px; color: var(--primary); }
-  .section { max-width: 960px; margin: 0 auto; padding: 0 24px 48px; }
-  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
-  .section-head h2 { font-family: var(--font-display); font-size: 24px; color: var(--primary); margin: 0; }
-  .section-head a { font-size: 13px; color: var(--secondary); text-decoration: none; font-weight: 600; }
-  .cta-banner {
-    max-width: 960px;
-    margin: 0 auto 48px;
-    padding: 0 24px;
-  }
-  .cta-banner .inner {
-    background: var(--primary);
-    border-radius: var(--radius);
-    padding: 28px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    color: #fff;
-  }
-  .cta-banner h3 { font-family: var(--font-display); margin: 0 0 4px; font-size: 19px; }
-  .cta-banner p { margin: 0; color: #CBD5C0; font-size: 14px; }
-  .cta-banner button { background: var(--secondary); color: #fff; }
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 24px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  nav.topbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px 24px; border-bottom: 1px solid var(--line);
-  }
-  nav.topbar .mark { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--primary); }
-  nav.topbar .mark span { color: var(--secondary); }
-  nav.topbar .links { display: flex; gap: 20px; align-items: center; font-size: 14px; }
-  nav.topbar .links a { color: var(--dark); text-decoration: none; }
-  nav.topbar .links a.cta { background: var(--secondary); color: #fff; padding: 8px 18px; border-radius: 999px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Find rental homes in Nairobi directly from landlords. Browse real listings on NYUMBAKE with no broker fees."
+  >
+
+  <meta name="theme-color" content="#0B3D2E">
+
+  <title>NYUMBAKE — Find Your Next Home in Nairobi</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
+
 <body>
 
-<nav class="topbar">
-  <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>NYUMBA<span>KE</span></div>
-  <div class="links">
-    <a href="index.html">Home</a>
-    <a href="tenant-browse.html">Browse</a>
-    <a href="landlord-signup.html">List your property</a>
-    <a href="tenant-signup.html" class="cta">Sign up</a>
-  </div>
-</nav>
+  <!-- ================= NAVIGATION ================= -->
 
-<div class="hero">
-  <div class="hero-inner">
-    <h1>Find Your Perfect <span>Home</span></h1>
-    <p>Direct from landlords — no brokers, no markup. Real listings only, starting with Nairobi.</p>
-    <form id="hero-search" class="search-panel">
-      <div>
-        <label for="h_city">Location</label>
-        <input type="text" id="h_city" placeholder="e.g. Kilimani">
-      </div>
-      <div>
-        <label for="h_type">Property type</label>
-        <select id="h_type">
-          <option value="">Any</option>
-          <option value="single_room">Single room</option>
-          <option value="double_room">Double room</option>
-          <option value="bedsitter">Bedsitter</option>
-          <option value="one_bedroom">One bedroom</option>
-          <option value="two_bedroom">Two bedroom</option>
-          <option value="three_bedroom">Three bedroom</option>
-        </select>
-      </div>
-      <div>
-        <label for="h_budget">Budget (KES)</label>
-        <select id="h_budget">
-          <option value="">Any</option>
-          <option value="0-10000">Under 10,000</option>
-          <option value="10000-20000">10,000 – 20,000</option>
-          <option value="20000-40000">20,000 – 40,000</option>
-          <option value="40000-70000">40,000 – 70,000</option>
-          <option value="70000-">70,000+</option>
-        </select>
-      </div>
-      <div style="flex:0">
-        <button type="submit" class="primary">Search</button>
-      </div>
-    </form>
-  </div>
-</div>
+  <header class="site-header">
+    <nav class="container nav-container" aria-label="Main navigation">
 
-<div class="badges">
-  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg></div><div class="label">Direct from landlords</div></div>
-  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="18.5" x2="18.5" y2="5.5"/></svg></div><div class="label">No broker fees</div></div>
-  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4L11 3.8A2 2 0 0 0 9.2 3H4a1 1 0 0 0-1 1v5.2a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg></div><div class="label">Transparent pricing</div></div>
-  <div class="badge"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.5 7-12a7 7 0 1 0-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></div><div class="label">Nairobi launch</div></div>
-</div>
+      <a href="index.html" class="brand" aria-label="NYUMBAKE Home">
+        <span class="brand-icon" aria-hidden="true">⌂</span>
+        NYUMBA<span>KE</span>
+      </a>
 
-<div class="section">
-  <div class="section-head">
-    <h2>Featured listings</h2>
-    <a href="tenant-browse.html">View all →</a>
-  </div>
-  <div id="featured-grid" class="listing-grid"></div>
-  <div id="featured-empty" class="panel" style="display:none; text-align:center; color:var(--muted)">
-    No listings yet — check back soon, or be the first landlord to list.
-  </div>
-</div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="tenant-browse.html">Browse homes</a></li>
+        <li><a href="landlord-signup.html">List your property</a></li>
+      </ul>
 
-<div class="cta-banner">
-  <div class="inner">
-    <div>
-      <h3>Are you a landlord?</h3>
-      <p>List your property and reach tenants directly.</p>
+      <div class="nav-actions">
+        <a href="tenant-signup.html" class="nav-login">Log in</a>
+        <a href="tenant-signup.html" class="nav-signup">Get started</a>
+
+        <button
+          type="button"
+          class="menu-toggle"
+          id="menu-toggle"
+          aria-label="Open navigation menu"
+          aria-controls="nav-links"
+          aria-expanded="false"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+
+    </nav>
+  </header>
+
+
+  <!-- ================= HERO ================= -->
+
+  <main>
+
+    <section class="hero">
+      <div class="hero-content">
+
+        <div class="hero-copy">
+
+          <div class="hero-eyebrow">
+            <span aria-hidden="true">●</span>
+            FIND YOUR PLACE IN NAIROBI
+          </div>
+
+          <h1>
+            Find Your<br>
+            Perfect <span>Home</span>
+          </h1>
+
+          <p>
+            Discover homes directly from landlords.
+            No unnecessary brokers, no hidden markups.
+            Just a simpler way to find your next home.
+          </p>
+
+          <div class="hero-actions">
+            <a href="tenant-browse.html" class="btn btn-primary">
+              Explore homes <span aria-hidden="true">→</span>
+            </a>
+
+            <a href="landlord-signup.html" class="btn btn-light">
+              List your property
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ================= PROPERTY SEARCH ================= -->
+
+    <div class="search-wrap">
+      <form id="hero-search" class="search-panel">
+
+        <div class="search-field">
+          <label for="h_city">Location</label>
+          <input
+            type="text"
+            id="h_city"
+            name="city"
+            placeholder="e.g. Kilimani"
+            autocomplete="address-level2"
+          >
+        </div>
+
+        <div class="search-field">
+          <label for="h_type">Property type</label>
+          <select id="h_type" name="type">
+            <option value="">Any property</option>
+            <option value="single_room">Single room</option>
+            <option value="double_room">Double room</option>
+            <option value="bedsitter">Bedsitter</option>
+            <option value="one_bedroom">One bedroom</option>
+            <option value="two_bedroom">Two bedroom</option>
+            <option value="three_bedroom">Three bedroom</option>
+          </select>
+        </div>
+
+        <div class="search-field">
+          <label for="h_budget">Monthly budget</label>
+          <select id="h_budget" name="budget">
+            <option value="">Any budget</option>
+            <option value="0-10000">Under KES 10,000</option>
+            <option value="10000-20000">KES 10,000 – 20,000</option>
+            <option value="20000-40000">KES 20,000 – 40,000</option>
+            <option value="40000-70000">KES 40,000 – 70,000</option>
+            <option value="70000-">KES 70,000+</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary search-submit">
+          <span aria-hidden="true">⌕</span>
+          Search homes
+        </button>
+
+      </form>
     </div>
-    <a href="landlord-signup.html"><button type="button" class="primary">List your property</button></a>
-  </div>
-</div>
 
-<footer>
-  NYUMBAKE — Nairobi rentals, direct from landlords.
-</footer>
 
-<script type="module">
-  import { supabase } from './js/supabase-client.js';
+    <!-- ================= TRUST FEATURES ================= -->
 
-  document.getElementById('hero-search').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const city = document.getElementById('h_city').value.trim();
-    const type = document.getElementById('h_type').value;
-    const budget = document.getElementById('h_budget').value;
-    const [min, max] = budget ? budget.split('-') : ['', ''];
+    <section class="container">
 
-    const params = new URLSearchParams();
-    if (city) params.set('city', city);
-    if (type) params.set('type', type);
-    if (min) params.set('min', min);
-    if (max) params.set('max', max);
+      <div class="feature-strip">
 
-    window.location.href = `tenant-browse.html?${params.toString()}`;
-  });
+        <div class="feature-item">
+          <div class="feature-icon" aria-hidden="true">⌂</div>
+          <div>
+            <h3>Direct from landlords</h3>
+            <p>Connect directly with property owners.</p>
+          </div>
+        </div>
 
-  async function loadFeatured() {
-    const grid = document.getElementById('featured-grid');
-    const emptyState = document.getElementById('featured-empty');
+        <div class="feature-item">
+          <div class="feature-icon" aria-hidden="true">✓</div>
+          <div>
+            <h3>No broker fees</h3>
+            <p>Find homes without broker charges.</p>
+          </div>
+        </div>
 
-    const { data, error } = await supabase
-      .from('public_listings')
-      .select('*')
-      .eq('availability', 'vacant')
-      .order('listed_at', { ascending: false })
-      .limit(3);
+        <div class="feature-item">
+          <div class="feature-icon" aria-hidden="true">₭</div>
+          <div>
+            <h3>Clear rental prices</h3>
+            <p>Know the rent before making contact.</p>
+          </div>
+        </div>
 
-    if (error || !data || data.length === 0) {
-      emptyState.style.display = 'block';
-      return;
+        <div class="feature-item">
+          <div class="feature-icon" aria-hidden="true">⌖</div>
+          <div>
+            <h3>Nairobi launch</h3>
+            <p>Starting with homes across Nairobi.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= FEATURED LISTINGS ================= -->
+
+    <section class="section">
+      <div class="container">
+
+        <div class="section-heading">
+          <div>
+            <h2>Featured homes</h2>
+            <p>Explore some of the latest available listings.</p>
+          </div>
+
+          <a href="tenant-browse.html" class="text-link">
+            View all <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <div id="featured-grid" class="listing-grid">
+          <!-- Supabase listings will be inserted here -->
+        </div>
+
+        <div id="featured-loading" class="empty-state">
+          <p>Loading available homes...</p>
+        </div>
+
+        <div id="featured-empty" class="empty-state" hidden>
+          <h2>No featured homes yet</h2>
+          <p>
+            There are currently no featured listings.
+            Check back soon or be the first landlord to list.
+          </p>
+          <br>
+          <a href="landlord-signup.html" class="btn btn-primary">
+            List your property
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ================= LANDLORD CTA ================= -->
+
+    <section class="container section">
+      <div class="host-cta">
+
+        <div>
+          <h2>Are you a landlord?</h2>
+          <p>
+            List your property on NYUMBAKE and connect
+            with tenants directly.
+          </p>
+        </div>
+
+        <a href="landlord-signup.html" class="btn btn-light">
+          List your property <span aria-hidden="true">→</span>
+        </a>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="site-footer">
+
+    <div class="container">
+
+      <div class="footer-main">
+
+        <div class="footer-brand">
+          <a href="index.html" class="brand">
+            <span class="brand-icon" aria-hidden="true">⌂</span>
+            NYUMBA<span>KE</span>
+          </a>
+
+          <p>
+            Making it easier to find a place to call home.
+            Connecting tenants and landlords directly,
+            starting in Nairobi.
+          </p>
+        </div>
+
+        <div class="footer-column">
+          <h3>Explore</h3>
+          <a href="index.html">Home</a>
+          <a href="tenant-browse.html">Browse homes</a>
+          <a href="tenant-signup.html">Create account</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>For landlords</h3>
+          <a href="landlord-signup.html">Get started</a>
+          <a href="property-upload.html">List a property</a>
+          <a href="landlord-dashboard.html">Dashboard</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>Account</h3>
+          <a href="tenant-signup.html">Log in / Sign up</a>
+          <a href="admin-dashboard.html">Administration</a>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <span>
+          © <span id="current-year"></span> NYUMBAKE.
+          All rights reserved.
+        </span>
+
+        <span>Find your place. Directly.</span>
+      </div>
+
+    </div>
+
+  </footer>
+
+
+  <!-- ================= PAGE FUNCTIONALITY ================= -->
+
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+
+    // Mobile navigation
+    const menuToggle = document.getElementById('menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+      menuToggle.setAttribute(
+        'aria-label',
+        isOpen ? 'Close navigation menu' : 'Open navigation menu'
+      );
+    });
+
+    // Close mobile navigation after selecting a link
+    navLinks.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation menu');
+      });
+    });
+
+    // Current year in footer
+    document.getElementById('current-year').textContent =
+      new Date().getFullYear();
+
+
+    // Hero search
+    document.getElementById('hero-search').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const city = document.getElementById('h_city').value.trim();
+      const type = document.getElementById('h_type').value;
+      const budget = document.getElementById('h_budget').value;
+
+      const [min, max] = budget ? budget.split('-') : ['', ''];
+
+      const params = new URLSearchParams();
+
+      if (city) params.set('city', city);
+      if (type) params.set('type', type);
+      if (min) params.set('min', min);
+      if (max) params.set('max', max);
+
+      const query = params.toString();
+
+      window.location.href = query
+        ? `tenant-browse.html?${query}`
+        : 'tenant-browse.html';
+    });
+
+
+    // Create a property card using safe text insertion
+    function createListingCard(listing) {
+      const card = document.createElement('article');
+      card.className = 'listing-card';
+
+      const photo = document.createElement('div');
+      photo.className = 'photo';
+
+      if (listing.thumbnail_path) {
+        const { data } = supabase.storage
+          .from('property-photos')
+          .getPublicUrl(listing.thumbnail_path);
+
+        if (data?.publicUrl) {
+          const image = document.createElement('img');
+          image.src = data.publicUrl;
+          image.alt = listing.property_name
+            ? `Photo of ${listing.property_name}`
+            : 'Rental property';
+          image.loading = 'lazy';
+          photo.appendChild(image);
+        } else {
+          photo.textContent = 'Photo unavailable';
+        }
+      } else {
+        photo.textContent = 'No photo yet';
+      }
+
+      const body = document.createElement('div');
+      body.className = 'body';
+
+      const type = document.createElement('div');
+      type.className = 'type-tag';
+      type.textContent = [
+        (listing.unit_type || 'Property').replaceAll('_', ' '),
+        listing.size_label
+      ].filter(Boolean).join(' · ');
+
+      const name = document.createElement('h3');
+      name.className = 'name';
+      name.textContent = listing.property_name || 'Rental property';
+
+      const city = document.createElement('div');
+      city.className = 'city';
+      city.textContent = listing.city || 'Location not specified';
+
+      const price = document.createElement('div');
+      price.className = 'price';
+
+      const rent = Number(listing.rent);
+      price.textContent = Number.isFinite(rent)
+        ? `KES ${rent.toLocaleString('en-KE')}`
+        : 'Rent not specified';
+
+      if (Number.isFinite(rent)) {
+        const period = document.createElement('span');
+        period.textContent = '/mo';
+        price.appendChild(period);
+      }
+
+      const meta = document.createElement('div');
+      meta.className = 'property-meta';
+
+      const availability = document.createElement('span');
+      availability.textContent = '● Available';
+      meta.appendChild(availability);
+
+      body.append(type, name, city, price, meta);
+      card.append(photo, body);
+
+      return card;
     }
 
-    data.forEach((listing) => {
-      const photoUrl = listing.thumbnail_path
-        ? supabase.storage.from('property-photos').getPublicUrl(listing.thumbnail_path).data.publicUrl
-        : null;
-      const card = document.createElement('div');
-      card.className = 'listing-card';
-      card.innerHTML = `
-        <div class="photo">${photoUrl ? `<img src="${photoUrl}" alt="${listing.unit_type}">` : 'No photo yet'}</div>
-        <div class="body">
-          <div class="type-tag">${listing.unit_type.replace('_', ' ')}${listing.size_label ? ' · ' + listing.size_label : ''}</div>
-          <div class="name">${listing.property_name}</div>
-          <div class="city">${listing.city}</div>
-          <div class="price">KES ${Number(listing.rent).toLocaleString()}<span>/mo</span></div>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-  }
-  loadFeatured();
-</script>
+
+    // Load featured homes from Supabase
+    async function loadFeatured() {
+      const grid = document.getElementById('featured-grid');
+      const loading = document.getElementById('featured-loading');
+      const emptyState = document.getElementById('featured-empty');
+
+      loading.hidden = false;
+      emptyState.hidden = true;
+      grid.replaceChildren();
+
+      try {
+        const { data, error } = await supabase
+          .from('public_listings')
+          .select('*')
+          .eq('availability', 'vacant')
+          .order('listed_at', { ascending: false })
+          .limit(3);
+
+        if (error) {
+          throw error;
+        }
+
+        loading.hidden = true;
+
+        if (!data || data.length === 0) {
+          emptyState.hidden = false;
+          return;
+        }
+
+        const cards = data.map(createListingCard);
+        grid.append(...cards);
+
+      } catch (error) {
+        console.error('Could not load featured listings:', error);
+        loading.hidden = true;
+        emptyState.hidden = false;
+
+        emptyState.querySelector('h2').textContent =
+          'Homes are temporarily unavailable';
+
+        emptyState.querySelector('p').textContent =
+          'Please try again in a little while.';
+      }
+    }
+
+    loadFeatured();
+  </script>
+
 </body>
 </html>
