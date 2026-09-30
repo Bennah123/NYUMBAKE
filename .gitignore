@@ -1,0 +1,33 @@
+
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local secrets
+supabase/.env
+supabase/.temp/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VS Code local settings
+.vscode/*
+!.vscode/extensions.json
+
+# Temporary files
+*.tmp
+*.bak
