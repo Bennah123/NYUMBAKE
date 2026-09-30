@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find a place — Browse listings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div class="wrap" style="max-width:960px">
+  <header class="masthead">
+    <div class="mark">NYUMBA<span>KE</span></div>
+    <div class="sub">Browse listings</div>
+  </header>
+
+  <h1>Find your next place</h1>
+  <p class="lede">Exact location and landlord contact details are shown after you confirm interest.</p>
+
+  <div id="status" class="status-msg" style="display:none"></div>
+
+  <form id="filter-form" class="panel" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end">
+    <div style="flex:1; min-width:140px">
+      <label for="f_city">City / town</label>
+      <input type="text" id="f_city" placeholder="e.g. Nairobi">
+    </div>
+    <div style="flex:1; min-width:140px">
+      <label for="f_type">Unit type</label>
+      <select id="f_type">
+        <option value="">Any</option>
+        <option value="single_room">Single room</option>
+        <option value="double_room">Double room</option>
+        <option value="bedsitter">Bedsitter</option>
+        <option value="one_bedroom">One bedroom</option>
+        <option value="two_bedroom">Two bedroom</option>
+        <option value="three_bedroom">Three bedroom</option>
+      </select>
+    </div>
+    <div style="flex:1; min-width:110px">
+      <label for="f_min">Min rent (KES)</label>
+      <input type="number" id="f_min" placeholder="0">
+    </div>
+    <div style="flex:1; min-width:110px">
+      <label for="f_max">Max rent (KES)</label>
+      <input type="number" id="f_max" placeholder="Any">
+    </div>
+    <div style="flex:1; min-width:130px">
+      <label for="f_sort">Sort by</label>
+      <select id="f_sort">
+        <option value="price_asc">Price: low to high</option>
+        <option value="price_desc">Price: high to low</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px">
+      <button type="submit" class="primary">Search</button>
+      <button type="button" class="ghost" id="reset-filters">Reset</button>
+    </div>
+  </form>
+
+  <div id="empty-state" class="panel" style="display:none; text-align:center; color:var(--muted)">
+    No listings match yet — try widening your filters.
+  </div>
+
+  <div id="results-grid" class="listing-grid"></div>
+
+  <div style="text-align:center">
+    <button type="button" class="ghost" id="load-more" style="display:none">Load more</button>
+  </div>
+</div>
+
+<script type="module" src="js/tenant-browse.js"></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYUMBAKE — Find your next home in Nairobi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+  .hero {
+    background: var(--primary);
+    color: #fff;
+    padding: 64px 24px 48px;
+    text-align: left;
+  }
+  .hero-inner { max-width: 760px; margin: 0 auto; }
+  .hero h1 { color: #fff; font-size: 40px; margin-bottom: 12px; }
+  .hero h1 span { color: var(--secondary); }
+  .hero p { color: #CBD5C0; font-size: 15px; max-width: 44ch; margin-bottom: 28px; }
+  .search-panel {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .search-panel > div { flex: 1; min-width: 140px; }
+  .search-panel label { color: var(--dark); }
+  .badges {
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .badge { text-align: center; padding: 16px; }
+  .badge .icon { font-size: 22px; margin-bottom: 6px; }
+  .badge .label { font-weight: 600; font-size: 14px; color: var(--primary); }
+  .section { max-width: 960px; margin: 0 auto; padding: 0 24px 48px; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .section-head h2 { font-family: var(--font-display); font-size: 24px; color: var(--primary); margin: 0; }
+  .section-head a { font-size: 13px; color: var(--secondary); text-decoration: none; font-weight: 600; }
+  .cta-banner {
+    max-width: 960px;
+    margin: 0 auto 48px;
+    padding: 0 24px;
+  }
+  .cta-banner .inner {
+    background: var(--primary);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: #fff;
+  }
+  .cta-banner h3 { font-family: var(--font-display); margin: 0 0 4px; font-size: 19px; }
+  .cta-banner p { margin: 0; color: #CBD5C0; font-size: 14px; }
+  .cta-banner button { background: var(--secondary); color: #fff; }
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 24px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  nav.topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid var(--line);
+  }
+  nav.topbar .mark { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--primary); }
+  nav.topbar .mark span { color: var(--secondary); }
+  nav.topbar .links { display: flex; gap: 20px; align-items: center; font-size: 14px; }
+  nav.topbar .links a { color: var(--dark); text-decoration: none; }
+  nav.topbar .links a.cta { background: var(--secondary); color: #fff; padding: 8px 18px; border-radius: 999px; }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="mark">NYUMBA<span>KE</span></div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tenant-browse.html">Browse</a>
+    <a href="landlord-signup.html">List your property</a>
+    <a href="tenant-signup.html" class="cta">Sign up</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Find Your Perfect <span>Home</span></h1>
+    <p>Direct from landlords — no brokers, no markup. Real listings only, starting with Nairobi.</p>
+    <form id="hero-search" class="search-panel">
+      <div>
+        <label for="h_city">Location</label>
+        <input type="text" id="h_city" placeholder="e.g. Kilimani">
+      </div>
+      <div>
+        <label for="h_type">Property type</label>
+        <select id="h_type">
+          <option value="">Any</option>
+          <option value="single_room">Single room</option>
+          <option value="double_room">Double room</option>
+          <option value="bedsitter">Bedsitter</option>
+          <option value="one_bedroom">One bedroom</option>
+          <option value="two_bedroom">Two bedroom</option>
+          <option value="three_bedroom">Three bedroom</option>
+        </select>
+      </div>
+      <div>
+        <label for="h_budget">Budget (KES)</label>
+        <select id="h_budget">
+          <option value="">Any</option>
+          <option value="0-10000">Under 10,000</option>
+          <option value="10000-20000">10,000 – 20,000</option>
+          <option value="20000-40000">20,000 – 40,000</option>
+          <option value="40000-70000">40,000 – 70,000</option>
+          <option value="70000-">70,000+</option>
+        </select>
+      </div>
+      <div style="flex:0">
+        <button type="submit" class="primary">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="badges">
+  <div class="badge"><div class="icon">🏠</div><div class="label">Direct from landlords</div></div>
+  <div class="badge"><div class="icon">🚫</div><div class="label">No broker fees</div></div>
+  <div class="badge"><div class="icon">💰</div><div class="label">Transparent pricing</div></div>
+  <div class="badge"><div class="icon">📍</div><div class="label">Nairobi launch</div></div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <h2>Featured listings</h2>
+    <a href="tenant-browse.html">View all →</a>
+  </div>
+  <div id="featured-grid" class="listing-grid"></div>
+  <div id="featured-empty" class="panel" style="display:none; text-align:center; color:var(--muted)">
+    No listings yet — check back soon, or be the first landlord to list.
+  </div>
+</div>
+
+<div class="cta-banner">
+  <div class="inner">
+    <div>
+      <h3>Are you a landlord?</h3>
+      <p>List your property and reach tenants directly.</p>
+    </div>
+    <a href="landlord-signup.html"><button type="button" class="primary">List your property</button></a>
+  </div>
+</div>
+
+<footer>
+  NYUMBAKE — Nairobi rentals, direct from landlords.
+</footer>
+
+<script type="module">
+  import { supabase } from './js/supabase-client.js';
+
+  document.getElementById('hero-search').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const city = document.getElementById('h_city').value.trim();
+    const type = document.getElementById('h_type').value;
+    const budget = document.getElementById('h_budget').value;
+    const [min, max] = budget ? budget.split('-') : ['', ''];
+
+    const params = new URLSearchParams();
+    if (city) params.set('city', city);
+    if (type) params.set('type', type);
+    if (min) params.set('min', min);
+    if (max) params.set('max', max);
+
+    window.location.href = `tenant-browse.html?${params.toString()}`;
+  });
+
+  async function loadFeatured() {
+    const grid = document.getElementById('featured-grid');
+    const emptyState = document.getElementById('featured-empty');
+
+    const { data, error } = await supabase
+      .from('public_listings')
+      .select('*')
+      .eq('availability', 'vacant')
+      .order('listed_at', { ascending: false })
+      .limit(3);
+
+    if (error || !data || data.length === 0) {
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    data.forEach((listing) => {
+      const photoUrl = listing.thumbnail_path
+        ? supabase.storage.from('property-photos').getPublicUrl(listing.thumbnail_path).data.publicUrl
+        : null;
+      const card = document.createElement('div');
+      card.className = 'listing-card';
+      card.innerHTML = `
+        <div class="photo">${photoUrl ? `<img src="${photoUrl}" alt="${listing.unit_type}">` : 'No photo yet'}</div>
+        <div class="body">
+          <div class="type-tag">${listing.unit_type.replace('_', ' ')}${listing.size_label ? ' · ' + listing.size_label : ''}</div>
+          <div class="name">${listing.property_name}</div>
+          <div class="city">${listing.city}</div>
+          <div class="price">KES ${Number(listing.rent).toLocaleString()}<span>/mo</span></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+  loadFeatured();
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+/* ============================================================
+   NYUMBAKE design tokens — matches the provided mockup.
+   Old variable names (--navy, --stamp, --moss, --paper...) are
+   aliased to the new palette below so landlord-signup.html and
+   property-upload.html pick up the new look with zero edits.
+   ============================================================ */
+:root {
+  --primary: #0B3D2E;
+  --secondary: #16A34A;
+  --accent: #F59E0B;
+  --light: #F8FAFC;
+  --dark: #1F2937;
+  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  /* aliases for pages built under the old ledger palette */
+  --navy: var(--primary);
+  --navy-soft: var(--secondary);
+  --paper: var(--light);
+  --paper-raised: #ffffff;
+  --stamp: var(--secondary);
+  --stamp-dark: #0f7a3a;
+  --moss: var(--secondary);
+  --line: #E2E8F0;
+  --ink-on-paper: var(--dark);
+  --muted: #64748B;
+
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--light);
+  color: var(--ink-on-paper);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+header.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+  margin-bottom: 40px;
+}
+
+header.masthead .mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+}
+header.masthead .mark span { color: var(--secondary); }
+header.masthead .sub { font-size: 13px; color: var(--muted); }
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: var(--primary);
+}
+
+p.lede { color: var(--muted); font-size: 15px; margin: 0 0 36px; max-width: 46ch; }
+
+/* Ledger step tabs (landlord signup) */
+.ledger { display: flex; gap: 2px; margin-bottom: 32px; border-bottom: 1px solid var(--line); }
+.ledger .tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 12px; color: var(--muted); border-bottom: 3px solid transparent; }
+.ledger .tab.active { color: var(--primary); border-bottom-color: var(--secondary); font-weight: 600; }
+.ledger .tab.done { color: var(--secondary); }
+
+/* Cards / panels */
+.panel {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.panel h2 { font-family: var(--font-display); font-size: 19px; font-weight: 600; margin: 0 0 4px; color: var(--primary); }
+.panel .hint { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+
+label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-on-paper); margin-bottom: 6px; }
+label .optional { font-weight: 400; color: var(--muted); }
+
+input[type="text"], input[type="tel"], input[type="number"], input[type="email"], select {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-on-paper);
+  margin-bottom: 16px;
+}
+input:focus, select:focus, button:focus-visible { outline: 2px solid var(--secondary); outline-offset: 1px; }
+
+.field-row { display: flex; gap: 12px; }
+.field-row > div { flex: 1; }
+
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 14px; }
+.checkbox-row input { margin: 0; }
+
+button.primary {
+  background: var(--secondary);
+  color: #fff;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+button.primary:hover { background: #128a3e; }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button.ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--line);
+  padding: 13px 24px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+
+/* OAuth buttons (tenant auth) */
+button.oauth {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--dark);
+  border: 1px solid var(--line);
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+button.oauth:hover { background: #f8fafc; }
+
+/* Photo upload slots */
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.photo-slot {
+  aspect-ratio: 1;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--muted); text-align: center; padding: 6px;
+  cursor: pointer; position: relative; overflow: hidden; background: #fff;
+}
+.photo-slot.required::after { content: "required"; position: absolute; top: 4px; right: 4px; font-size: 9px; color: var(--accent); font-weight: 600; }
+.photo-slot.filled { border-style: solid; border-color: var(--secondary); }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+
+.stamp-mark { display: inline-flex; align-items: center; gap: 6px; color: var(--secondary); font-size: 13px; font-weight: 600; }
+
+.status-msg { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+.status-msg.error { background: #FEE2E2; color: #B91C1C; }
+.status-msg.ok { background: #DCFCE7; color: #15803D; }
+
+.unit-block { border-top: 1px dashed var(--line); padding-top: 20px; margin-top: 20px; }
+.unit-block .remove { float: right; font-size: 12px; color: #DC2626; cursor: pointer; background: none; border: none; }
+
+/* Listing cards (tenant browse) */
+.listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 24px 0; }
+.listing-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; }
+.listing-card .photo { aspect-ratio: 4/3; background: #E2E8F0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
+.listing-card .photo img { width: 100%; height: 100%; object-fit: cover; }
+.listing-card .body { padding: 14px; }
+.listing-card .type-tag { font-size: 11px; color: var(--secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.listing-card .name { font-family: var(--font-display); font-size: 17px; color: var(--primary); margin: 4px 0; font-weight: 600; }
+.listing-card .city { font-size: 13px; color: var(--muted); }
+.listing-card .price { font-size: 16px; font-weight: 700; margin-top: 8px; color: var(--dark); }
+.listing-card .price span { font-weight: 400; color: var(--muted); font-size: 13px; }

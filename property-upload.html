@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add a property</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="mark">NYUMBA<span>KE</span></div>
+    <div class="sub">Add a property</div>
+  </header>
+
+  <h1>Where is it, and what's for rent?</h1>
+  <p class="lede">Every unit type has its own must-take photos — the grid below updates as you go. Publishing (and the payment step) comes after this is saved as a draft.</p>
+
+  <div id="status" class="status-msg" style="display:none"></div>
+
+  <div class="panel">
+    <h2>Property details</h2>
+    <p class="hint">One entry covers the whole compound — you'll add individual unit types below.</p>
+
+    <label for="p_name">Property name</label>
+    <input type="text" id="p_name" placeholder="e.g. Greenview Apartments">
+
+    <div class="field-row">
+      <div>
+        <label for="p_city">City / town</label>
+        <input type="text" id="p_city" placeholder="e.g. Nairobi">
+      </div>
+      <div>
+        <label for="p_estate">Estate</label>
+        <input type="text" id="p_estate" placeholder="e.g. Kilimani">
+      </div>
+    </div>
+
+    <label for="p_coords">Coordinates</label>
+    <div class="field-row">
+      <div><input type="text" id="p_lat" placeholder="Latitude" readonly></div>
+      <div><input type="text" id="p_lng" placeholder="Longitude" readonly></div>
+    </div>
+    <button type="button" class="ghost" id="use-location" style="margin-bottom:16px">Use my current location</button>
+
+    <div class="field-row">
+      <div>
+        <label for="p_water">Water price per unit (KES)</label>
+        <input type="number" id="p_water" placeholder="e.g. 150">
+      </div>
+      <div>
+        <label for="p_contact">Contact number</label>
+        <input type="tel" id="p_contact" placeholder="07XX XXX XXX">
+      </div>
+    </div>
+  </div>
+
+  <div id="units-container"></div>
+
+  <button type="button" class="ghost" id="add-unit" style="margin-bottom:24px">+ Add a unit type</button>
+
+  <div class="actions">
+    <button type="button" class="primary" id="save-draft">Save property as draft</button>
+  </div>
+</div>
+
+<template id="unit-template">
+  <div class="panel unit-block" data-client-id="">
+    <button type="button" class="remove">Remove</button>
+    <h2>Unit type</h2>
+    <div class="field-row">
+      <div>
+        <label>Unit type</label>
+        <select class="u-type">
+          <option value="single_room">Single room</option>
+          <option value="double_room">Double room</option>
+          <option value="bedsitter">Bedsitter</option>
+          <option value="one_bedroom">One bedroom</option>
+          <option value="two_bedroom">Two bedroom</option>
+          <option value="three_bedroom">Three bedroom</option>
+        </select>
+      </div>
+      <div>
+        <label>Size label <span class="optional">(if units of this type vary in size)</span></label>
+        <input type="text" class="u-size" placeholder="e.g. Larger / Standard">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div>
+        <label>Number of units this size</label>
+        <input type="number" class="u-qty" min="1" placeholder="e.g. 12">
+      </div>
+      <div>
+        <label>Rent (KES)</label>
+        <input type="number" class="u-rent" placeholder="e.g. 8000">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Deposit (KES)</label>
+        <input type="number" class="u-deposit" placeholder="e.g. 8000">
+      </div>
+      <div>
+        <label>Water deposit (KES) <span class="optional">(optional)</span></label>
+        <input type="number" class="u-water-deposit" placeholder="e.g. 1000">
+      </div>
+    </div>
+
+    <div class="optional-toggles"></div>
+    <p class="hint" style="margin-top:12px">Photos</p>
+    <div class="photo-grid"></div>
+  </div>
+</template>
+
+<script type="module">
+  import { supabase, PHOTO_REQUIREMENTS, logAudit } from './js/supabase-client.js';
+
+  const statusEl = document.getElementById('status');
+  const showStatus = (msg, type) => {
+    statusEl.textContent = msg;
+    statusEl.className = `status-msg ${type}`;
+    statusEl.style.display = 'block';
+    statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  document.getElementById('use-location').addEventListener('click', () => {
+    if (!navigator.geolocation) return showStatus('Location not available on this device.', 'error');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        document.getElementById('p_lat').value = pos.coords.latitude.toFixed(6);
+        document.getElementById('p_lng').value = pos.coords.longitude.toFixed(6);
+      },
+      () => showStatus('Could not read your location — enter coordinates from Google Maps instead.', 'error')
+    );
+  });
+
+  // ---- Unit blocks ----
+  const unitsContainer = document.getElementById('units-container');
+  const unitTemplate = document.getElementById('unit-template');
+  const units = new Map(); // clientId -> { el, photos: {category: {path, required}} }
+  let unitCounter = 0;
+
+  function renderPhotoGrid(block, unitType) {
+    const req = PHOTO_REQUIREMENTS[unitType];
+    const grid = block.el.querySelector('.photo-grid');
+    const togglesWrap = block.el.querySelector('.optional-toggles');
+    grid.innerHTML = '';
+    togglesWrap.innerHTML = '';
+    block.photos = {};
+
+    const addSlot = (cat) => {
+      const slot = document.createElement('div');
+      slot.className = 'photo-slot required';
+      slot.innerHTML = `<span>${cat.label}</span><input type="file" accept="image/*" style="display:none">`;
+      const fileInput = slot.querySelector('input');
+      slot.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', () => uploadPhoto(block, cat.key, fileInput.files[0], slot));
+      grid.appendChild(slot);
+      block.photos[cat.key] = { path: null, required: true };
+    };
+
+    req.required.forEach(addSlot);
+
+    req.optionalToggles.forEach((opt) => {
+      const row = document.createElement('div');
+      row.className = 'checkbox-row';
+      row.innerHTML = `<input type="checkbox" id="opt-${block.clientId}-${opt.key}"> <label for="opt-${block.clientId}-${opt.key}" style="margin:0">Does this unit have a ${opt.label.toLowerCase()}?</label>`;
+      const checkbox = row.querySelector('input');
+      checkbox.addEventListener('change', () => {
+        const existing = grid.querySelector(`[data-cat="${opt.key}"]`);
+        if (checkbox.checked && !existing) {
+          const slot = document.createElement('div');
+          slot.className = 'photo-slot required';
+          slot.dataset.cat = opt.key;
+          slot.innerHTML = `<span>${opt.label}</span><input type="file" accept="image/*" style="display:none">`;
+          const fileInput = slot.querySelector('input');
+          slot.addEventListener('click', () => fileInput.click());
+          fileInput.addEventListener('change', () => uploadPhoto(block, opt.key, fileInput.files[0], slot));
+          grid.appendChild(slot);
+          block.photos[opt.key] = { path: null, required: true };
+        } else if (!checkbox.checked && existing) {
+          existing.remove();
+          delete block.photos[opt.key];
+        }
+      });
+      togglesWrap.appendChild(row);
+    });
+  }
+
+  async function uploadPhoto(block, category, file, slotEl) {
+    if (!file) return;
+    const ext = file.name.split('.').pop();
+    const path = `${draftPropertyId}/${block.clientId}/${category}-${Date.now()}.${ext}`;
+    slotEl.innerHTML = `<span>Uploading…</span>`;
+    const { error } = await supabase.storage.from('property-photos').upload(path, file, { upsert: true });
+    if (error) {
+      slotEl.innerHTML = `<span>Failed — tap to retry</span>`;
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+      fileInput.addEventListener('change', () => uploadPhoto(block, category, fileInput.files[0], slotEl));
+      slotEl.appendChild(fileInput);
+      slotEl.onclick = () => fileInput.click();
+      return;
+    }
+    block.photos[category].path = path;
+    const { data: pub } = supabase.storage.from('property-photos').getPublicUrl(path);
+    slotEl.classList.add('filled');
+    slotEl.innerHTML = `<img src="${pub.publicUrl}" alt="${category}">`;
+  }
+
+  function addUnitBlock() {
+    unitCounter += 1;
+    const clientId = `u${unitCounter}`;
+    const node = unitTemplate.content.cloneNode(true);
+    const el = node.querySelector('.unit-block');
+    el.dataset.clientId = clientId;
+    unitsContainer.appendChild(node);
+
+    const block = { clientId, el, photos: {} };
+    units.set(clientId, block);
+
+    const typeSelect = el.querySelector('.u-type');
+    renderPhotoGrid(block, typeSelect.value);
+    typeSelect.addEventListener('change', () => renderPhotoGrid(block, typeSelect.value));
+
+    el.querySelector('.remove').addEventListener('click', () => {
+      units.delete(clientId);
+      el.remove();
+    });
+  }
+
+  document.getElementById('add-unit').addEventListener('click', addUnitBlock);
+  const draftPropertyId = crypto.randomUUID();
+  addUnitBlock(); // start with one
+
+  // ---- Save ----
+  document.getElementById('save-draft').addEventListener('click', async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return showStatus('Please sign up / log in first.', 'error');
+
+    const name = document.getElementById('p_name').value.trim();
+    const city = document.getElementById('p_city').value.trim();
+    const estate = document.getElementById('p_estate').value.trim();
+    const lat = parseFloat(document.getElementById('p_lat').value) || null;
+    const lng = parseFloat(document.getElementById('p_lng').value) || null;
+    const water_price_per_unit = parseFloat(document.getElementById('p_water').value) || null;
+    const contact_phone = document.getElementById('p_contact').value.trim();
+
+    if (!name || !city || !estate || !contact_phone) {
+      return showStatus('Fill in property name, city, estate and contact number.', 'error');
+    }
+    if (units.size === 0) return showStatus('Add at least one unit type.', 'error');
+
+    // Validate each unit has all required photos + numbers filled.
+    for (const block of units.values()) {
+      const el = block.el;
+      const qty = el.querySelector('.u-qty').value;
+      const rent = el.querySelector('.u-rent').value;
+      const deposit = el.querySelector('.u-deposit').value;
+      if (!qty || !rent || !deposit) {
+        return showStatus('Fill in quantity, rent and deposit for every unit type.', 'error');
+      }
+      const missing = Object.entries(block.photos).filter(([, v]) => !v.path);
+      if (missing.length) {
+        return showStatus(`Upload all required photos for "${PHOTO_REQUIREMENTS[el.querySelector('.u-type').value].label}" before saving.`, 'error');
+      }
+    }
+
+    const { error: propError } = await supabase.from('properties').insert({
+      id: draftPropertyId,
+      landlord_id: user.id,
+      name, city, estate, lat, lng,
+      water_price_per_unit,
+      contact_phone,
+    });
+    if (propError) return showStatus(propError.message, 'error');
+
+    for (const block of units.values()) {
+      const el = block.el;
+      const unit_type = el.querySelector('.u-type').value;
+      const size_label = el.querySelector('.u-size').value.trim() || null;
+      const quantity = parseInt(el.querySelector('.u-qty').value, 10);
+      const rent = parseFloat(el.querySelector('.u-rent').value);
+      const deposit = parseFloat(el.querySelector('.u-deposit').value);
+      const water_deposit = parseFloat(el.querySelector('.u-water-deposit').value) || null;
+
+      const { data: unitRow, error: unitError } = await supabase
+        .from('units')
+        .insert({ property_id: draftPropertyId, unit_type, size_label, quantity, rent, deposit, water_deposit })
+        .select()
+        .single();
+      if (unitError) return showStatus(unitError.message, 'error');
+
+      const photoRows = Object.entries(block.photos).map(([category, v]) => ({
+        unit_id: unitRow.id,
+        category,
+        is_required: v.required,
+        storage_path: v.path,
+      }));
+      if (photoRows.length) {
+        const { error: photoError } = await supabase.from('unit_photos').insert(photoRows);
+        if (photoError) return showStatus(photoError.message, 'error');
+      }
+    }
+
+    await logAudit(draftPropertyId, user.id, 'created', { name, city, estate, units: units.size });
+
+    showStatus('Saved as draft. Publishing (with the upload payment) is the next step.', 'ok');
+  });
+</script>
+</body>
+</html>
