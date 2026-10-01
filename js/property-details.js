@@ -1,4 +1,4 @@
-import { supabase, PHOTO_REQUIREMENTS } from './supabase-client.js';
+import { supabase, PHOTO_REQUIREMENTS, initiateMpesaPayment, pollPaymentStatus } from './supabase-client.js';
 
 const params = new URLSearchParams(window.location.search);
 const unitId = params.get('unit');
@@ -86,6 +86,7 @@ async function load() {
     .eq('unit_id', unitId);
 
   render(listing, photos || []);
+  checkExistingUnlock();
 }
 
 document.getElementById('enquiry-form').addEventListener('submit', async (e) => {
@@ -147,10 +148,70 @@ document.getElementById('enquiry-form').addEventListener('submit', async (e) => 
   showEnquiryStatus('Sent — the landlord will see this in their dashboard.', 'ok');
 });
 
-document.getElementById('contact-btn').addEventListener('click', () => {
+function showUnlockedContact(contact) {
+  const panel = document.querySelector('.contact-panel');
+  const result = document.createElement('div');
+  result.style.cssText = 'margin-top:16px; padding:14px; background:var(--surface-soft); border-radius:10px; font-size:14px;';
+  result.innerHTML = `
+    <div style="font-weight:600; margin-bottom:6px;">Contact &amp; location unlocked</div>
+    <div>Estate: ${contact.estate}</div>
+    <div>Phone: ${contact.contact_phone}</div>
+    ${contact.lat && contact.lng ? `<a href="https://maps.google.com/?q=${contact.lat},${contact.lng}" target="_blank" rel="noopener">View on Google Maps</a>` : ''}
+  `;
+  document.getElementById('contact-btn').style.display = 'none';
+  panel.insertBefore(result, panel.querySelector('div[style*="border-top"]'));
+}
+
+async function checkExistingUnlock() {
+  if (!currentListing) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data } = await supabase.rpc('get_unlocked_contact', { p_unit_id: currentListing.unit_id });
+  if (data && data.length > 0) showUnlockedContact(data[0]);
+}
+
+document.getElementById('contact-btn').addEventListener('click', async () => {
   const status = document.getElementById('contact-status');
-  status.textContent = "Unlocking contact details isn't available yet — check back soon.";
-  status.style.display = 'block';
+  const showContactStatus = (msg, type) => {
+    status.textContent = msg;
+    status.className = `status-msg ${type}`;
+    status.style.display = 'block';
+  };
+
+  if (!currentListing) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    const here = window.location.pathname + window.location.search;
+    window.location.href = `tenant-signup.html?redirect=${encodeURIComponent(here)}`;
+    return;
+  }
+
+  const phone = prompt('M-Pesa number to pay KES 50 and unlock contact details:', '');
+  if (!phone) return;
+
+  try {
+    showContactStatus('Starting payment…', 'ok');
+    const { paymentId } = await initiateMpesaPayment('contact_reveal', { unitId: currentListing.unit_id, phone });
+    showContactStatus('Check your phone and enter your M-Pesa PIN.', 'ok');
+    const result = await pollPaymentStatus(paymentId);
+
+    if (result === 'completed') {
+      const { data } = await supabase.rpc('get_unlocked_contact', { p_unit_id: currentListing.unit_id });
+      if (data && data.length > 0) {
+        showContactStatus('Unlocked!', 'ok');
+        showUnlockedContact(data[0]);
+      } else {
+        showContactStatus('Payment went through but something looked off reading the details back — refresh the page.', 'error');
+      }
+    } else if (result === 'timeout') {
+      showContactStatus("Haven't heard back yet. If you completed the payment, refresh this page in a minute.", 'error');
+    } else {
+      showContactStatus('Payment was not completed.', 'error');
+    }
+  } catch (err) {
+    showContactStatus(err.message || 'Could not start the payment.', 'error');
+  }
 });
 
 load();

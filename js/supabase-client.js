@@ -103,3 +103,36 @@ export async function logAudit(propertyId, landlordId, action, details = {}, act
   });
   if (error) console.error('audit log failed:', error.message);
 }
+
+// ------------------------------------------------------------
+// M-Pesa payment helpers. These never write payment status
+// themselves — they call the Edge Functions / read what the
+// Edge Functions wrote. A pending payment becomes real only
+// when mpesa-callback (server-side, service-role) says so.
+// ------------------------------------------------------------
+
+// Starts an STK push via the mpesa-stk-push Edge Function. Returns
+// { paymentId, checkoutRequestId } on success, or throws with a
+// user-readable message on failure.
+export async function initiateMpesaPayment(purpose, { propertyId, unitId, phone }) {
+  const { data, error } = await supabase.functions.invoke('mpesa-stk-push', {
+    body: { purpose, propertyId, unitId, phone },
+  });
+  if (error) {
+    const msg = (await error.context?.json?.())?.error || error.message;
+    throw new Error(msg);
+  }
+  return data;
+}
+
+// Polls the payments table (the client CAN read its own rows — see RLS)
+// until status leaves 'pending' or the timeout is hit. Never writes.
+export async function pollPaymentStatus(paymentId, { intervalMs = 3000, timeoutMs = 90000 } = {}) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const { data } = await supabase.from('payments').select('status').eq('id', paymentId).maybeSingle();
+    if (data && data.status !== 'pending') return data.status;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  return 'timeout';
+}
