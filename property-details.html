@@ -25,6 +25,7 @@
         <li><a href="landlord-signup.html">List your property</a></li>
       </ul>
       <div class="nav-actions">
+        <a href="tenant-dashboard.html" class="nav-login">My enquiries</a>
         <a href="tenant-signup.html" class="nav-login">Log in</a>
         <a href="tenant-signup.html" class="nav-signup">Get started</a>
         <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Open navigation menu" aria-controls="nav-links" aria-expanded="false">
@@ -73,6 +74,24 @@
           <p>Get the exact location and the landlord's contact details.</p>
           <button type="button" class="btn btn-primary btn-block" id="contact-btn">Get contact details</button>
           <p id="contact-status" class="status-msg" style="display:none; margin-top:12px"></p>
+
+          <div style="border-top:1px solid var(--line); margin:20px 0; padding-top:20px">
+            <h2 style="font-size:16px">Or send a message</h2>
+            <p>No payment needed — the landlord sees your message and contact info in their dashboard.</p>
+            <form id="enquiry-form">
+              <label for="enq_message">Your message</label>
+              <textarea id="enq_message" placeholder="Ask a question about this place…" required></textarea>
+
+              <label for="enq_contact">Your phone or email <span class="optional">(so they can reach you back)</span></label>
+              <input type="text" id="enq_contact" placeholder="07XX XXX XXX or you@example.com">
+
+              <label for="enq_viewing_time">Preferred viewing time <span class="optional">(optional)</span></label>
+              <input type="datetime-local" id="enq_viewing_time">
+
+              <button type="submit" class="btn btn-primary btn-block">Send</button>
+            </form>
+            <p id="enquiry-status" class="status-msg" style="display:none; margin-top:12px"></p>
+          </div>
         </div>
       </div>
     </div>

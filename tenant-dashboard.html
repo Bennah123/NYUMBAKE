@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Manage your NYUMBAKE property listings — publish, archive, and update availability.">
-  <title>Dashboard | NYUMBAKE</title>
-
+  <title>My enquiries | NYUMBAKE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,13 +17,11 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
         NYUMBA<span>KE</span>
       </a>
-
       <div class="sidebar-label">Menu</div>
       <nav class="sidebar-nav">
-        <a href="landlord-dashboard.html" class="active">Dashboard</a>
-        <a href="property-upload.html">Add a property</a>
+        <a href="tenant-dashboard.html" class="active">My enquiries</a>
+        <a href="tenant-browse.html">Browse homes</a>
       </nav>
-
       <div class="sidebar-label" style="margin-top:auto">Account</div>
       <nav class="sidebar-nav">
         <button type="button" id="logout-btn" style="all:unset; cursor:pointer; display:flex; align-items:center; gap:11px; padding:12px; color:#d1e1da; border-radius:8px; font-size:13px;">Log out</button>
@@ -34,44 +30,28 @@
 
     <main class="dashboard-main">
 
-      <div id="loading-state" class="empty-state">
-        <p>Loading your properties…</p>
-      </div>
+      <div id="loading-state" class="empty-state"><p>Loading…</p></div>
 
       <div id="empty-state" class="empty-state" style="display:none">
         <div class="empty-state-icon" aria-hidden="true">⌂</div>
-        <h3>No properties yet</h3>
-        <p>List your first property to start reaching tenants.</p>
-        <a href="property-upload.html" class="btn btn-primary">Add a property</a>
+        <h3>Nothing here yet</h3>
+        <p>Enquiries and viewing requests you send to landlords will show up here.</p>
+        <a href="tenant-browse.html" class="btn btn-primary">Browse homes</a>
       </div>
 
       <div id="dashboard-content" style="display:none">
         <div class="dashboard-topbar">
           <div>
-            <h1>Your properties</h1>
-            <p>Manage listings, availability, and publishing status.</p>
+            <h1>My enquiries</h1>
+            <p>Everything you've sent to landlords, and where it stands.</p>
           </div>
         </div>
-
-        <div class="stats-grid">
-          <div class="stat-card"><p>Properties</p><h2 id="stat-properties">0</h2></div>
-          <div class="stat-card"><p>Total units</p><h2 id="stat-units">0</h2></div>
-          <div class="stat-card"><p>Vacant</p><h2 id="stat-vacant">0</h2></div>
-          <div class="stat-card"><p>Rented</p><h2 id="stat-rented">0</h2></div>
-        </div>
-
-        <div id="properties-list"></div>
-
-        <div class="dashboard-panel">
-          <h2>Enquiries &amp; viewing requests</h2>
-          <p class="hint" style="margin-top:-12px; margin-bottom:16px; color:var(--muted); font-size:13px;">Tenants' messages land here — no phone numbers are shared unless you reach out using the contact info they left.</p>
-          <div id="enquiries-list"></div>
-        </div>
+        <div id="items-list"></div>
       </div>
 
     </main>
   </div>
 
-  <script type="module" src="js/landlord-dashboard.js"></script>
+  <script type="module" src="js/tenant-dashboard.js"></script>
 </body>
 </html>

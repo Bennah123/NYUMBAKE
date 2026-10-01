@@ -117,7 +117,7 @@ p.lede { color: var(--muted); font-size: 15px; margin: 0 0 36px; max-width: 46ch
 label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-on-paper); margin-bottom: 6px; }
 label .optional { font-weight: 400; color: var(--muted); }
 
-input[type="text"], input[type="tel"], input[type="number"], input[type="email"], select {
+input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="datetime-local"], select, textarea {
   width: 100%;
   padding: 11px 14px;
   font-family: var(--font-body);
@@ -128,7 +128,8 @@ input[type="text"], input[type="tel"], input[type="number"], input[type="email"]
   color: var(--ink-on-paper);
   margin-bottom: 16px;
 }
-input:focus, select:focus, button:focus-visible { outline: 2px solid var(--secondary); outline-offset: 1px; }
+textarea { resize: vertical; min-height: 90px; }
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--secondary); outline-offset: 1px; }
 
 .field-row { display: flex; gap: 12px; }
 .field-row > div { flex: 1; }

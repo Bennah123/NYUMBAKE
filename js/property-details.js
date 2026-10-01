@@ -12,7 +12,10 @@ function showNotFound() {
   notFoundEl.style.display = 'block';
 }
 
+let currentListing = null;
+
 function render(listing, photos) {
+  currentListing = listing;
   loadingEl.style.display = 'none';
   contentEl.style.display = 'block';
 
@@ -84,6 +87,65 @@ async function load() {
 
   render(listing, photos || []);
 }
+
+document.getElementById('enquiry-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const statusEl = document.getElementById('enquiry-status');
+  const showEnquiryStatus = (msg, type) => {
+    statusEl.textContent = msg;
+    statusEl.className = `status-msg ${type}`;
+    statusEl.style.display = 'block';
+  };
+
+  if (!currentListing) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    const here = window.location.pathname + window.location.search;
+    window.location.href = `tenant-signup.html?redirect=${encodeURIComponent(here)}`;
+    return;
+  }
+
+  const message = document.getElementById('enq_message').value.trim();
+  const tenant_contact = document.getElementById('enq_contact').value.trim() || null;
+  const viewingTimeRaw = document.getElementById('enq_viewing_time').value;
+
+  if (!message) return showEnquiryStatus('Write a message first.', 'error');
+
+  // Make sure a tenant profile row exists (covers OAuth sign-ins that
+  // bounced straight back here before ever hitting tenant-signup.html's
+  // own profile-creation step).
+  await supabase.from('tenants').upsert({
+    id: user.id,
+    full_name: user.user_metadata?.full_name || user.email,
+    email: user.email,
+  });
+
+  const { error: enqError } = await supabase.from('enquiries').insert({
+    tenant_id: user.id,
+    landlord_id: currentListing.landlord_id,
+    property_id: currentListing.property_id,
+    unit_id: currentListing.unit_id,
+    message,
+    tenant_contact,
+  });
+  if (enqError) return showEnquiryStatus(enqError.message, 'error');
+
+  if (viewingTimeRaw) {
+    const { error: viewError } = await supabase.from('viewing_requests').insert({
+      tenant_id: user.id,
+      landlord_id: currentListing.landlord_id,
+      property_id: currentListing.property_id,
+      unit_id: currentListing.unit_id,
+      requested_at: new Date(viewingTimeRaw).toISOString(),
+      tenant_contact,
+    });
+    if (viewError) return showEnquiryStatus(viewError.message, 'error');
+  }
+
+  document.getElementById('enquiry-form').reset();
+  showEnquiryStatus('Sent — the landlord will see this in their dashboard.', 'ok');
+});
 
 document.getElementById('contact-btn').addEventListener('click', () => {
   const status = document.getElementById('contact-status');

@@ -204,3 +204,16 @@ create policy "landlord writes own audit log" on property_audit_log
 -- Public (tenant-facing) read access — scoped to listing_status = 'published',
 -- with location/contact fields stripped at the query layer — is the next
 -- slice, not part of this schema pass.
+
+
+create policy "admin writes audit log" on property_audit_log
+  for insert with check (is_admin());
+
+-- hardening: pin search_path on the SECURITY DEFINER function so it
+-- can't be redirected by a malicious schema earlier in the search path
+create or replace function is_admin() returns boolean
+language sql security definer stable
+set search_path = public
+as $$
+  select exists (select 1 from admins where id = auth.uid());
+$$;
