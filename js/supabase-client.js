@@ -91,10 +91,13 @@ export const PHOTO_REQUIREMENTS = {
 };
 
 // Log an action to property_audit_log. Call after any create/update.
-export async function logAudit(propertyId, landlordId, action, details = {}) {
+// actorId defaults to landlordId — pass it explicitly when the actor
+// isn't the property's own landlord (e.g. an admin moderation action).
+export async function logAudit(propertyId, landlordId, action, details = {}, actorId = null) {
   const { error } = await supabase.from('property_audit_log').insert({
     property_id: propertyId,
     landlord_id: landlordId,
+    actor_id: actorId || landlordId,
     action,
     details,
   });

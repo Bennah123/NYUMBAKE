@@ -127,6 +127,15 @@ from units u
 join properties p on p.id = u.property_id
 where p.listing_status = 'published';
 
+create or replace view public_unit_photos as
+select ph.unit_id, ph.category, ph.storage_path
+from unit_photos ph
+join units u on u.id = ph.unit_id
+join properties p on p.id = u.property_id
+where p.listing_status = 'published';
+
+grant select on public_unit_photos to anon, authenticated;
+
 create or replace function touch_property_updated_at()
 returns trigger language plpgsql as $$
 begin

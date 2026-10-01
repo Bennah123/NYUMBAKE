@@ -49,11 +49,19 @@ function render(listing, photos) {
   } else {
     photos.forEach((p) => {
       const { data } = supabase.storage.from('property-photos').getPublicUrl(p.storage_path);
-      const img = document.createElement('img');
-      img.src = data.publicUrl;
-      img.alt = p.category.replace(/_/g, ' ');
-      img.loading = 'lazy';
-      gallery.appendChild(img);
+      if (p.media_type === 'video') {
+        const video = document.createElement('video');
+        video.src = data.publicUrl;
+        video.controls = true;
+        video.preload = 'metadata';
+        gallery.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = data.publicUrl;
+        img.alt = p.category.replace(/_/g, ' ');
+        img.loading = 'lazy';
+        gallery.appendChild(img);
+      }
     });
   }
 }
@@ -71,7 +79,7 @@ async function load() {
 
   const { data: photos } = await supabase
     .from('public_unit_photos')
-    .select('category, storage_path')
+    .select('category, storage_path, media_type')
     .eq('unit_id', unitId);
 
   render(listing, photos || []);

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | NYUMBAKE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+      <a href="index.html" class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        NYUMBA<span>KE</span>
+      </a>
+      <div class="sidebar-label">Admin</div>
+      <nav class="sidebar-nav">
+        <a href="admin-dashboard.html" class="active">Overview</a>
+      </nav>
+      <div class="sidebar-label" style="margin-top:auto">Account</div>
+      <nav class="sidebar-nav">
+        <button type="button" id="logout-btn" style="all:unset; cursor:pointer; display:flex; align-items:center; gap:11px; padding:12px; color:#d1e1da; border-radius:8px; font-size:13px;">Log out</button>
+      </nav>
+    </aside>
+
+    <main class="dashboard-main">
+
+      <div id="loading-state" class="empty-state"><p>Checking access…</p></div>
+
+      <div id="denied-state" class="empty-state" style="display:none">
+        <div class="empty-state-icon" aria-hidden="true">⌂</div>
+        <h3>Admin access only</h3>
+        <p>This account isn't on the admin list. Contact whoever manages the Supabase project if you believe this is wrong.</p>
+        <a href="index.html" class="btn btn-primary">Back to NYUMBAKE</a>
+      </div>
+
+      <div id="dashboard-content" style="display:none">
+        <div class="dashboard-topbar">
+          <div>
+            <h1>Platform overview</h1>
+            <p>Every property, every landlord — across the whole platform, not just one account.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><p>Total properties</p><h2 id="stat-properties">0</h2></div>
+          <div class="stat-card"><p>Draft</p><h2 id="stat-draft">0</h2></div>
+          <div class="stat-card"><p>Published</p><h2 id="stat-published">0</h2></div>
+          <div class="stat-card"><p>Total units</p><h2 id="stat-units">0</h2></div>
+        </div>
+
+        <div class="dashboard-panel">
+          <h2>All properties</h2>
+          <div id="properties-list"></div>
+        </div>
+
+        <div class="dashboard-panel">
+          <h2>Landlords</h2>
+          <div id="landlords-list"></div>
+        </div>
+
+        <div class="dashboard-panel">
+          <h2>Recent activity</h2>
+          <p class="hint" style="margin-top:-12px; margin-bottom:16px; color:var(--muted); font-size:13px;">Last 30 actions across every property — landlord edits and admin moderation both show up here.</p>
+          <div id="audit-log-list"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module" src="js/admin-dashboard.js"></script>
+</body>
+</html>

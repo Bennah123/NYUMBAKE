@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Add a property</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
 </head>
@@ -13,57 +12,60 @@
 <div class="wrap">
   <header class="masthead">
     <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>NYUMBA<span>KE</span></div>
-    <div class="sub">Add a property</div>
+    <div class="sub" id="page-sub">Add a property</div>
   </header>
 
-  <h1>Where is it, and what's for rent?</h1>
-  <p class="lede">Every unit type has its own must-take photos — the grid below updates as you go. Publishing (and the payment step) comes after this is saved as a draft.</p>
+  <h1 id="page-h1">Where is it, and what's for rent?</h1>
+  <p class="lede" id="page-lede">Every unit type has its own must-take photos — the grid below updates as you go. Publishing comes after this is saved.</p>
 
   <div id="status" class="status-msg" style="display:none"></div>
+  <div id="loading-state" class="empty-state" style="display:none"><p>Loading property…</p></div>
 
-  <div class="panel">
-    <h2>Property details</h2>
-    <p class="hint">One entry covers the whole compound — you'll add individual unit types below.</p>
+  <div id="form-wrap">
+    <div class="panel">
+      <h2>Property details</h2>
+      <p class="hint">One entry covers the whole compound — you'll add individual unit types below.</p>
 
-    <label for="p_name">Property name</label>
-    <input type="text" id="p_name" placeholder="e.g. Greenview Apartments">
+      <label for="p_name">Property name</label>
+      <input type="text" id="p_name" placeholder="e.g. Greenview Apartments">
 
-    <div class="field-row">
-      <div>
-        <label for="p_city">City / town</label>
-        <input type="text" id="p_city" placeholder="e.g. Nairobi">
+      <div class="field-row">
+        <div>
+          <label for="p_city">City / town</label>
+          <input type="text" id="p_city" placeholder="e.g. Nairobi">
+        </div>
+        <div>
+          <label for="p_estate">Estate</label>
+          <input type="text" id="p_estate" placeholder="e.g. Kilimani">
+        </div>
       </div>
-      <div>
-        <label for="p_estate">Estate</label>
-        <input type="text" id="p_estate" placeholder="e.g. Kilimani">
+
+      <label for="p_coords">Coordinates</label>
+      <div class="field-row">
+        <div><input type="text" id="p_lat" placeholder="Latitude" readonly></div>
+        <div><input type="text" id="p_lng" placeholder="Longitude" readonly></div>
+      </div>
+      <button type="button" class="ghost" id="use-location" style="margin-bottom:16px">Use my current location</button>
+
+      <div class="field-row">
+        <div>
+          <label for="p_water">Water price per unit (KES)</label>
+          <input type="number" id="p_water" placeholder="e.g. 150">
+        </div>
+        <div>
+          <label for="p_contact">Contact number</label>
+          <input type="tel" id="p_contact" placeholder="07XX XXX XXX">
+        </div>
       </div>
     </div>
 
-    <label for="p_coords">Coordinates</label>
-    <div class="field-row">
-      <div><input type="text" id="p_lat" placeholder="Latitude" readonly></div>
-      <div><input type="text" id="p_lng" placeholder="Longitude" readonly></div>
+    <div id="units-container"></div>
+
+    <button type="button" class="ghost" id="add-unit" style="margin-bottom:24px">+ Add a unit type</button>
+
+    <div class="actions">
+      <button type="button" class="primary" id="save-draft">Save property as draft</button>
     </div>
-    <button type="button" class="ghost" id="use-location" style="margin-bottom:16px">Use my current location</button>
-
-    <div class="field-row">
-      <div>
-        <label for="p_water">Water price per unit (KES)</label>
-        <input type="number" id="p_water" placeholder="e.g. 150">
-      </div>
-      <div>
-        <label for="p_contact">Contact number</label>
-        <input type="tel" id="p_contact" placeholder="07XX XXX XXX">
-      </div>
-    </div>
-  </div>
-
-  <div id="units-container"></div>
-
-  <button type="button" class="ghost" id="add-unit" style="margin-bottom:24px">+ Add a unit type</button>
-
-  <div class="actions">
-    <button type="button" class="primary" id="save-draft">Save property as draft</button>
   </div>
 </div>
 
@@ -113,6 +115,11 @@
     <div class="optional-toggles"></div>
     <p class="hint" style="margin-top:12px">Photos</p>
     <div class="photo-grid"></div>
+
+    <p class="hint" style="margin-top:16px">Video walkthrough <span class="optional">(optional, under 50MB)</span></p>
+    <div class="photo-slot video-slot" style="width:180px; height:100px; aspect-ratio:auto;">
+      <span>Add a video</span>
+    </div>
   </div>
 </template>
 
@@ -126,6 +133,10 @@
     statusEl.style.display = 'block';
     statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+
+  const editPropertyId = new URLSearchParams(window.location.search).get('property');
+  const propertyId = editPropertyId || crypto.randomUUID();
+  const isEditing = Boolean(editPropertyId);
 
   document.getElementById('use-location').addEventListener('click', () => {
     if (!navigator.geolocation) return showStatus('Location not available on this device.', 'error');
@@ -141,10 +152,11 @@
   // ---- Unit blocks ----
   const unitsContainer = document.getElementById('units-container');
   const unitTemplate = document.getElementById('unit-template');
-  const units = new Map(); // clientId -> { el, photos: {category: {path, required}} }
+  const units = new Map(); // clientId -> { el, dbId, clientId, photos: {category: {path, required}} }
   let unitCounter = 0;
+  let currentUser = null;
 
-  function renderPhotoGrid(block, unitType) {
+  function renderPhotoGrid(block, unitType, existingPhotos = {}) {
     const req = PHOTO_REQUIREMENTS[unitType];
     const grid = block.el.querySelector('.photo-grid');
     const togglesWrap = block.el.querySelector('.optional-toggles');
@@ -152,15 +164,34 @@
     togglesWrap.innerHTML = '';
     block.photos = {};
 
+    const fillSlot = (slot, path) => {
+      const { data: pub } = supabase.storage.from('property-photos').getPublicUrl(path);
+      slot.classList.add('filled');
+      slot.innerHTML = `<img src="${pub.publicUrl}" alt="">`;
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+      slot.appendChild(fileInput);
+    };
+
     const addSlot = (cat) => {
       const slot = document.createElement('div');
       slot.className = 'photo-slot required';
-      slot.innerHTML = `<span>${cat.label}</span><input type="file" accept="image/*" style="display:none">`;
-      const fileInput = slot.querySelector('input');
-      slot.addEventListener('click', () => fileInput.click());
+      slot.dataset.cat = cat.key;
+      const existingPath = existingPhotos[cat.key];
+      slot.innerHTML = existingPath ? '' : `<span>${cat.label}</span>`;
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+      if (!existingPath) slot.appendChild(fileInput);
+      slot.addEventListener('click', () => (slot.querySelector('input') || fileInput).click());
       fileInput.addEventListener('change', () => uploadPhoto(block, cat.key, fileInput.files[0], slot));
       grid.appendChild(slot);
-      block.photos[cat.key] = { path: null, required: true };
+      if (existingPath) {
+        fillSlot(slot, existingPath);
+        slot.querySelector('input').addEventListener('change', (e) => uploadPhoto(block, cat.key, e.target.files[0], slot));
+        block.photos[cat.key] = { path: existingPath, required: true };
+      } else {
+        block.photos[cat.key] = { path: null, required: true };
+      }
     };
 
     req.required.forEach(addSlot);
@@ -168,20 +199,39 @@
     req.optionalToggles.forEach((opt) => {
       const row = document.createElement('div');
       row.className = 'checkbox-row';
-      row.innerHTML = `<input type="checkbox" id="opt-${block.clientId}-${opt.key}"> <label for="opt-${block.clientId}-${opt.key}" style="margin:0">Does this unit have a ${opt.label.toLowerCase()}?</label>`;
+      const hasExisting = Boolean(existingPhotos[opt.key]);
+      row.innerHTML = `<input type="checkbox" id="opt-${block.clientId}-${opt.key}" ${hasExisting ? 'checked' : ''}> <label for="opt-${block.clientId}-${opt.key}" style="margin:0">Does this unit have a ${opt.label.toLowerCase()}?</label>`;
       const checkbox = row.querySelector('input');
+
+      const addOptSlot = () => {
+        const slot = document.createElement('div');
+        slot.className = 'photo-slot required';
+        slot.dataset.cat = opt.key;
+        const existingPath = existingPhotos[opt.key];
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+        if (!existingPath) {
+          slot.innerHTML = `<span>${opt.label}</span>`;
+          slot.appendChild(fileInput);
+        }
+        slot.addEventListener('click', () => (slot.querySelector('input') || fileInput).click());
+        fileInput.addEventListener('change', () => uploadPhoto(block, opt.key, fileInput.files[0], slot));
+        grid.appendChild(slot);
+        if (existingPath) {
+          fillSlot(slot, existingPath);
+          slot.querySelector('input').addEventListener('change', (e) => uploadPhoto(block, opt.key, e.target.files[0], slot));
+          block.photos[opt.key] = { path: existingPath, required: true };
+        } else {
+          block.photos[opt.key] = { path: null, required: true };
+        }
+      };
+
+      if (hasExisting) addOptSlot();
+
       checkbox.addEventListener('change', () => {
         const existing = grid.querySelector(`[data-cat="${opt.key}"]`);
         if (checkbox.checked && !existing) {
-          const slot = document.createElement('div');
-          slot.className = 'photo-slot required';
-          slot.dataset.cat = opt.key;
-          slot.innerHTML = `<span>${opt.label}</span><input type="file" accept="image/*" style="display:none">`;
-          const fileInput = slot.querySelector('input');
-          slot.addEventListener('click', () => fileInput.click());
-          fileInput.addEventListener('change', () => uploadPhoto(block, opt.key, fileInput.files[0], slot));
-          grid.appendChild(slot);
-          block.photos[opt.key] = { path: null, required: true };
+          addOptSlot();
         } else if (!checkbox.checked && existing) {
           existing.remove();
           delete block.photos[opt.key];
@@ -194,7 +244,8 @@
   async function uploadPhoto(block, category, file, slotEl) {
     if (!file) return;
     const ext = file.name.split('.').pop();
-    const path = `${draftPropertyId}/${block.clientId}/${category}-${Date.now()}.${ext}`;
+    const unitPathSegment = block.dbId || block.clientId;
+    const path = `${propertyId}/${unitPathSegment}/${category}.${ext}`;
     slotEl.innerHTML = `<span>Uploading…</span>`;
     const { error } = await supabase.storage.from('property-photos').upload(path, file, { upsert: true });
     if (error) {
@@ -209,10 +260,70 @@
     block.photos[category].path = path;
     const { data: pub } = supabase.storage.from('property-photos').getPublicUrl(path);
     slotEl.classList.add('filled');
-    slotEl.innerHTML = `<img src="${pub.publicUrl}" alt="${category}">`;
+    slotEl.innerHTML = `<img src="${pub.publicUrl}?t=${Date.now()}" alt="${category}">`;
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+    fileInput.addEventListener('change', () => uploadPhoto(block, category, fileInput.files[0], slotEl));
+    slotEl.appendChild(fileInput);
+    slotEl.onclick = () => fileInput.click();
   }
 
-  function addUnitBlock() {
+  async function uploadVideo(block, file, slotEl) {
+    if (!file) return;
+    const MAX_BYTES = 50 * 1024 * 1024; // matches Supabase's default per-file limit on the free tier
+    if (file.size > MAX_BYTES) return showStatus('Video is too large — keep it under 50MB.', 'error');
+
+    const ext = file.name.split('.').pop();
+    const unitPathSegment = block.dbId || block.clientId;
+    const path = `${propertyId}/${unitPathSegment}/walkthrough_video.${ext}`;
+    slotEl.innerHTML = '<span>Uploading…</span>';
+    const { error } = await supabase.storage.from('property-photos').upload(path, file, { upsert: true });
+
+    const attachInput = () => {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'video/*'; fileInput.style.display = 'none';
+      fileInput.addEventListener('change', () => uploadVideo(block, fileInput.files[0], slotEl));
+      slotEl.appendChild(fileInput);
+      slotEl.onclick = () => fileInput.click();
+    };
+
+    if (error) {
+      slotEl.innerHTML = '<span>Failed — tap to retry</span>';
+      attachInput();
+      return;
+    }
+    block.video.path = path;
+    slotEl.classList.add('filled');
+    slotEl.innerHTML = '<span>✓ Video uploaded<br>(tap to replace)</span>';
+    attachInput();
+  }
+
+  function wireVideoSlot(block, existingVideoPath) {
+    const slot = block.el.querySelector('.video-slot');
+    block.video = { path: existingVideoPath || null };
+    if (existingVideoPath) {
+      slot.classList.add('filled');
+      slot.innerHTML = '<span>✓ Video uploaded<br>(tap to replace)</span>';
+    }
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file'; fileInput.accept = 'video/*'; fileInput.style.display = 'none';
+    fileInput.addEventListener('change', () => uploadVideo(block, fileInput.files[0], slot));
+    slot.appendChild(fileInput);
+    slot.onclick = () => fileInput.click();
+  }
+
+  async function removeUnitBlock(block) {
+    if (block.dbId) {
+      if (!confirm('Remove this unit type? This deletes it permanently, including its photos.')) return;
+      const { error } = await supabase.from('units').delete().eq('id', block.dbId);
+      if (error) return showStatus(error.message, 'error');
+      await logAudit(propertyId, currentUser.id, 'unit_removed', { unit_id: block.dbId });
+    }
+    units.delete(block.clientId);
+    block.el.remove();
+  }
+
+  function addUnitBlock(existingUnit = null, existingPhotos = {}) {
     unitCounter += 1;
     const clientId = `u${unitCounter}`;
     const node = unitTemplate.content.cloneNode(true);
@@ -220,27 +331,84 @@
     el.dataset.clientId = clientId;
     unitsContainer.appendChild(node);
 
-    const block = { clientId, el, photos: {} };
+    const block = { clientId, dbId: existingUnit ? existingUnit.id : null, el, photos: {} };
     units.set(clientId, block);
 
     const typeSelect = el.querySelector('.u-type');
-    renderPhotoGrid(block, typeSelect.value);
+    if (existingUnit) {
+      typeSelect.value = existingUnit.unit_type;
+      el.querySelector('.u-size').value = existingUnit.size_label || '';
+      el.querySelector('.u-qty').value = existingUnit.quantity;
+      el.querySelector('.u-rent').value = existingUnit.rent;
+      el.querySelector('.u-deposit').value = existingUnit.deposit;
+      el.querySelector('.u-water-deposit').value = existingUnit.water_deposit || '';
+    }
+
+    renderPhotoGrid(block, typeSelect.value, existingPhotos);
+    wireVideoSlot(block, existingPhotos.walkthrough_video);
     typeSelect.addEventListener('change', () => renderPhotoGrid(block, typeSelect.value));
 
-    el.querySelector('.remove').addEventListener('click', () => {
-      units.delete(clientId);
-      el.remove();
-    });
+    el.querySelector('.remove').addEventListener('click', () => removeUnitBlock(block));
   }
 
-  document.getElementById('add-unit').addEventListener('click', addUnitBlock);
-  const draftPropertyId = crypto.randomUUID();
-  addUnitBlock(); // start with one
+  document.getElementById('add-unit').addEventListener('click', () => addUnitBlock());
+
+  // ---- Load existing property when editing ----
+  async function loadForEdit() {
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('loading-state').style.display = 'block';
+    document.getElementById('page-sub').textContent = 'Edit property';
+    document.getElementById('page-h1').textContent = 'Edit property details';
+    document.getElementById('page-lede').textContent = 'Changes save immediately to this listing.';
+    document.getElementById('save-draft').textContent = 'Save changes';
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = 'landlord-signup.html'; return; }
+    currentUser = user;
+
+    const { data: property, error: propError } = await supabase
+      .from('properties').select('*').eq('id', editPropertyId).maybeSingle();
+    if (propError || !property) {
+      showStatus('Could not load this property — it may not exist or you may not own it.', 'error');
+      document.getElementById('loading-state').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('p_name').value = property.name;
+    document.getElementById('p_city').value = property.city;
+    document.getElementById('p_estate').value = property.estate;
+    document.getElementById('p_lat').value = property.lat || '';
+    document.getElementById('p_lng').value = property.lng || '';
+    document.getElementById('p_water').value = property.water_price_per_unit || '';
+    document.getElementById('p_contact').value = property.contact_phone;
+
+    const { data: existingUnits } = await supabase
+      .from('units').select('*').eq('property_id', editPropertyId).order('created_at');
+
+    for (const unit of existingUnits || []) {
+      const { data: photos } = await supabase
+        .from('unit_photos').select('category, storage_path').eq('unit_id', unit.id);
+      const photoMap = {};
+      (photos || []).forEach((p) => { photoMap[p.category] = p.storage_path; });
+      addUnitBlock(unit, photoMap);
+    }
+    if (!existingUnits || existingUnits.length === 0) addUnitBlock();
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('form-wrap').style.display = 'block';
+  }
+
+  if (isEditing) {
+    loadForEdit();
+  } else {
+    addUnitBlock();
+  }
 
   // ---- Save ----
   document.getElementById('save-draft').addEventListener('click', async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return showStatus('Please sign up / log in first.', 'error');
+    currentUser = user;
 
     const name = document.getElementById('p_name').value.trim();
     const city = document.getElementById('p_city').value.trim();
@@ -255,7 +423,6 @@
     }
     if (units.size === 0) return showStatus('Add at least one unit type.', 'error');
 
-    // Validate each unit has all required photos + numbers filled.
     for (const block of units.values()) {
       const el = block.el;
       const qty = el.querySelector('.u-qty').value;
@@ -270,14 +437,15 @@
       }
     }
 
-    const { error: propError } = await supabase.from('properties').insert({
-      id: draftPropertyId,
-      landlord_id: user.id,
-      name, city, estate, lat, lng,
-      water_price_per_unit,
-      contact_phone,
-    });
-    if (propError) return showStatus(propError.message, 'error');
+    const propertyPayload = { landlord_id: user.id, name, city, estate, lat, lng, water_price_per_unit, contact_phone };
+
+    if (isEditing) {
+      const { error } = await supabase.from('properties').update(propertyPayload).eq('id', propertyId);
+      if (error) return showStatus(error.message, 'error');
+    } else {
+      const { error } = await supabase.from('properties').insert({ id: propertyId, ...propertyPayload });
+      if (error) return showStatus(error.message, 'error');
+    }
 
     for (const block of units.values()) {
       const el = block.el;
@@ -287,29 +455,35 @@
       const rent = parseFloat(el.querySelector('.u-rent').value);
       const deposit = parseFloat(el.querySelector('.u-deposit').value);
       const water_deposit = parseFloat(el.querySelector('.u-water-deposit').value) || null;
+      const unitPayload = { property_id: propertyId, unit_type, size_label, quantity, rent, deposit, water_deposit };
 
-      const { data: unitRow, error: unitError } = await supabase
-        .from('units')
-        .insert({ property_id: draftPropertyId, unit_type, size_label, quantity, rent, deposit, water_deposit })
-        .select()
-        .single();
-      if (unitError) return showStatus(unitError.message, 'error');
+      let unitId = block.dbId;
+      if (unitId) {
+        const { error: unitError } = await supabase.from('units').update(unitPayload).eq('id', unitId);
+        if (unitError) return showStatus(unitError.message, 'error');
+        await supabase.from('unit_photos').delete().eq('unit_id', unitId);
+      } else {
+        const { data: unitRow, error: unitError } = await supabase
+          .from('units').insert(unitPayload).select().single();
+        if (unitError) return showStatus(unitError.message, 'error');
+        unitId = unitRow.id;
+        block.dbId = unitId;
+      }
 
       const photoRows = Object.entries(block.photos).map(([category, v]) => ({
-        unit_id: unitRow.id,
-        category,
-        is_required: v.required,
-        storage_path: v.path,
+        unit_id: unitId, category, is_required: v.required, storage_path: v.path, media_type: 'image',
       }));
+      if (block.video.path) {
+        photoRows.push({ unit_id: unitId, category: 'walkthrough_video', is_required: false, storage_path: block.video.path, media_type: 'video' });
+      }
       if (photoRows.length) {
         const { error: photoError } = await supabase.from('unit_photos').insert(photoRows);
         if (photoError) return showStatus(photoError.message, 'error');
       }
     }
 
-    await logAudit(draftPropertyId, user.id, 'created', { name, city, estate, units: units.size });
-
-    showStatus('Saved as draft. Publishing (with the upload payment) is the next step.', 'ok');
+    await logAudit(propertyId, user.id, isEditing ? 'updated' : 'created', { name, city, estate, units: units.size });
+    showStatus(isEditing ? 'Changes saved.' : 'Saved as draft. Publish it from your dashboard when ready.', 'ok');
   });
 </script>
 </body>
