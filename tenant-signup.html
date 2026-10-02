@@ -160,9 +160,13 @@
     if (password.length < 8) return showStatus('Password must be at least 8 characters.', 'error');
 
     const { data, error } = await supabase.auth.signUp({
-      email, password, options: { data: { full_name } },
+      email,
+      password,
+      options: {data: { full_name },
+      emailRedirectTo: `${window.location.origin}/tenant-signup.html`,
+      },
     });
-    if (error) return showStatus(error.message, 'error');
+          if (error) return showStatus(error.message, 'error');
 
     if (data.user) {
       await ensureTenantProfile(data.user, full_name);
