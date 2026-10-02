@@ -170,6 +170,45 @@ async function checkExistingUnlock() {
   if (data && data.length > 0) showUnlockedContact(data[0]);
 }
 
+document.getElementById('report-toggle').addEventListener('click', () => {
+  const form = document.getElementById('report-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('report-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const statusEl = document.getElementById('report-status');
+  const showReportStatus = (msg, type) => {
+    statusEl.textContent = msg;
+    statusEl.className = `status-msg ${type}`;
+    statusEl.style.display = 'block';
+  };
+
+  if (!currentListing) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    const here = window.location.pathname + window.location.search;
+    window.location.href = `tenant-signup.html?redirect=${encodeURIComponent(here)}`;
+    return;
+  }
+
+  const reason = document.getElementById('report-reason').value;
+  const description = document.getElementById('report-description').value.trim() || null;
+
+  const { error } = await supabase.from('reports').insert({
+    reporter_id: user.id,
+    property_id: currentListing.property_id,
+    reason,
+    description,
+  });
+  if (error) return showReportStatus(error.message, 'error');
+
+  document.getElementById('report-form').reset();
+  document.getElementById('report-form').style.display = 'none';
+  showReportStatus('Thanks — we\'ll take a look.', 'ok');
+});
+
 document.getElementById('contact-btn').addEventListener('click', async () => {
   const status = document.getElementById('contact-status');
   const showContactStatus = (msg, type) => {

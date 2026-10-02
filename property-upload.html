@@ -401,10 +401,28 @@
     document.getElementById('form-wrap').style.display = 'block';
   }
 
+  async function initNewProperty() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { window.location.href = 'landlord-signup.html'; return; }
+    currentUser = user;
+
+    // Create the row now, empty, so photo uploads (which start as soon as
+    // the user picks a file, long before Save) have a property row to
+    // check ownership against. Save always updates this row from here on.
+    const { error } = await supabase.from('properties').insert({
+      id: propertyId, landlord_id: user.id, name: '', city: '', estate: '', contact_phone: '',
+    });
+    if (error) {
+      showStatus('Could not start a new property: ' + error.message, 'error');
+      return;
+    }
+    addUnitBlock();
+  }
+
   if (isEditing) {
     loadForEdit();
   } else {
-    addUnitBlock();
+    initNewProperty();
   }
 
   // ---- Save ----
@@ -440,15 +458,9 @@
       }
     }
 
-    const propertyPayload = { landlord_id: user.id, name, city, estate, lat, lng, water_price_per_unit, contact_phone };
-
-    if (isEditing) {
-      const { error } = await supabase.from('properties').update(propertyPayload).eq('id', propertyId);
-      if (error) return showStatus(error.message, 'error');
-    } else {
-      const { error } = await supabase.from('properties').insert({ id: propertyId, ...propertyPayload });
-      if (error) return showStatus(error.message, 'error');
-    }
+    const propertyPayload = { name, city, estate, lat, lng, water_price_per_unit, contact_phone };
+    const { error: propError } = await supabase.from('properties').update(propertyPayload).eq('id', propertyId);
+    if (propError) return showStatus(propError.message, 'error');
 
     for (const block of units.values()) {
       const el = block.el;

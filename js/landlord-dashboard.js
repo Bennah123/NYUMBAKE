@@ -140,6 +140,21 @@ function renderProperties(properties) {
       actions.appendChild(archiveBtn);
     }
 
+    if (property.listing_status === 'draft') {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-light';
+      deleteBtn.style.color = '#b91c1c';
+      deleteBtn.textContent = 'Delete draft';
+      deleteBtn.addEventListener('click', async () => {
+        if (!confirm(`Permanently delete "${property.name || 'this draft'}"? This can't be undone.`)) return;
+        const { error } = await supabase.from('properties').delete().eq('id', property.id);
+        if (error) return alert(error.message);
+        loadDashboard();
+      });
+      actions.appendChild(deleteBtn);
+    }
+
     const unitsWrap = document.createElement('div');
     unitsWrap.style.cssText = 'display:grid; gap:10px;';
 

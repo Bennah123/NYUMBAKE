@@ -36,9 +36,97 @@ async function init() {
   }
 
   contentEl.style.display = 'block';
+  await loadReports();
   await loadProperties();
   await loadLandlords();
   await loadAuditLog();
+}
+
+const REASON_LABELS = {
+  inaccurate_info: 'Information looks inaccurate',
+  scam_suspected: 'Looks like a scam',
+  already_rented: 'Already rented',
+  inappropriate_content: 'Inappropriate content',
+  other: 'Other',
+};
+
+async function loadReports() {
+  const container = document.getElementById('reports-list');
+  container.innerHTML = '';
+
+  const { data: reports } = await supabase
+    .from('reports')
+    .select('*, properties(name)')
+    .order('created_at', { ascending: false });
+
+  const open = (reports || []).filter((r) => r.status === 'open');
+
+  if (open.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted)">No open reports.</p>';
+    return;
+  }
+
+  // reporter_id -> tenant name, fetched separately since reports.reporter_id
+  // references auth.users directly, not tenants, so it can't be embedded.
+  const reporterIds = [...new Set(open.map((r) => r.reporter_id))];
+  const { data: reporterRows } = await supabase.from('tenants').select('id, full_name').in('id', reporterIds);
+  const reporterNames = Object.fromEntries((reporterRows || []).map((t) => [t.id, t.full_name]));
+
+  open.forEach((report) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:14px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px;';
+
+    const propertyName = report.properties?.name || 'Unknown property';
+    const reporterName = reporterNames[report.reporter_id] || 'A tenant';
+    const when = new Date(report.created_at).toLocaleString('en-KE');
+
+    row.innerHTML = `
+      <div style="display:flex; justify-content:space-between; gap:10px; margin-bottom:6px;">
+        <strong>${propertyName}</strong>
+        <span style="font-size:12px; color:var(--muted)">${when}</span>
+      </div>
+      <div style="font-size:13px; margin-bottom:4px;"><strong>${REASON_LABELS[report.reason] || report.reason}</strong> — reported by ${reporterName}</div>
+      ${report.description ? `<div style="font-size:13px; color:var(--muted); margin-bottom:10px;">${report.description}</div>` : ''}
+    `;
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+
+    const archiveBtn = document.createElement('button');
+    archiveBtn.type = 'button';
+    archiveBtn.className = 'btn btn-light';
+    archiveBtn.textContent = 'Archive property';
+    archiveBtn.addEventListener('click', async () => {
+      if (!confirm(`Archive "${propertyName}"? It will be removed from Browse.`)) return;
+      await supabase.from('properties').update({ listing_status: 'archived' }).eq('id', report.property_id);
+      await resolveReport(report, 'resolved', 'Property archived');
+    });
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.className = 'btn btn-light';
+    dismissBtn.textContent = 'Dismiss';
+    dismissBtn.addEventListener('click', () => {
+      const notes = prompt('Optional note on why this was dismissed:') || null;
+      resolveReport(report, 'dismissed', notes);
+    });
+
+    actions.append(archiveBtn, dismissBtn);
+    row.appendChild(actions);
+    container.appendChild(row);
+  });
+}
+
+async function resolveReport(report, status, notes) {
+  const { error } = await supabase.from('reports').update({
+    status,
+    resolution_notes: notes,
+    resolved_by: currentUser.id,
+    resolved_at: new Date().toISOString(),
+  }).eq('id', report.id);
+  if (error) return alert(error.message);
+  loadReports();
+  loadProperties();
 }
 
 async function loadProperties() {

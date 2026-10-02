@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NYUMBAKE — Sign in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
 <style>
@@ -62,6 +61,7 @@
         <input type="email" id="li_email" placeholder="you@example.com">
         <label for="li_password">Password</label>
         <input type="text" id="li_password" placeholder="Enter your password" style="-webkit-text-security:disc; text-security:disc">
+        <div style="text-align:right; margin:-10px 0 16px;"><a id="forgot-password" style="font-size:12px; color:var(--secondary); text-decoration:none; cursor:pointer;">Forgot password?</a></div>
         <button type="submit" class="primary" style="width:100%; margin-bottom:14px">Login</button>
         <div class="divider">or</div>
         <button type="button" class="oauth" id="li_google">Continue with Google</button>
@@ -121,6 +121,16 @@
   document.getElementById('to-login').addEventListener('click', showLogin);
 
   const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || 'tenant-browse.html';
+
+  document.getElementById('forgot-password').addEventListener('click', async () => {
+    const email = document.getElementById('li_email').value.trim();
+    if (!email) return showStatus('Enter your email above first, then click "Forgot password?".', 'error');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}${window.location.pathname.replace('tenant-signup.html', 'reset-password.html')}`,
+    });
+    if (error) return showStatus(error.message, 'error');
+    showStatus('Check your email for a reset link.', 'ok');
+  });
 
   async function ensureTenantProfile(user, fallbackName) {
     const { error } = await supabase.from('tenants').upsert({

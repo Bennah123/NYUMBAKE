@@ -164,6 +164,20 @@ drop trigger if exists trg_touch_viewing_requests on viewing_requests;
 create trigger trg_touch_viewing_requests before update on viewing_requests
 for each row execute function touch_updated_at();
 
+-- ---------- Reports ----------
+create table if not exists reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references auth.users(id) on delete cascade,
+  property_id uuid not null references properties(id) on delete cascade,
+  reason text not null check (reason in ('inaccurate_info','scam_suspected','already_rented','inappropriate_content','other')),
+  description text,
+  status text not null default 'open' check (status in ('open','resolved','dismissed')),
+  resolution_notes text,
+  resolved_by uuid references auth.users(id),
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+
 -- ---------- Payments & contact unlocks ----------
 -- No insert/update policy for ordinary users — payments are only ever
 -- written by the mpesa-stk-push / mpesa-callback Edge Functions
@@ -226,6 +240,7 @@ alter table enquiries enable row level security;
 alter table viewing_requests enable row level security;
 alter table payments enable row level security;
 alter table contact_unlocks enable row level security;
+alter table reports enable row level security;
 
 -- Landlord-owner policies
 create policy "landlord reads own profile" on landlords for select using (auth.uid() = id);
@@ -267,6 +282,11 @@ create policy "admin writes audit log" on property_audit_log for insert with che
 create policy "admin updates any property status" on properties for update using (is_admin()) with check (is_admin());
 create policy "admin reads all payments" on payments for select using (is_admin());
 create policy "admin reads all unlocks" on contact_unlocks for select using (is_admin());
+
+create policy "user creates own report" on reports for insert with check (auth.uid() = reporter_id);
+create policy "user reads own reports" on reports for select using (auth.uid() = reporter_id);
+create policy "admin reads all reports" on reports for select using (is_admin());
+create policy "admin updates reports" on reports for update using (is_admin()) with check (is_admin());
 
 -- Enquiries / viewing requests
 create policy "tenant creates own enquiry" on enquiries for insert with check (auth.uid() = tenant_id);
@@ -319,16 +339,22 @@ grant select on public_unit_photos to anon, authenticated;
 create policy "public reads property photos" on storage.objects
   for select using (bucket_id = 'property-photos');
 
--- NOTE: these allow any authenticated user to write anywhere in this
--- bucket — there's no check that the uploader owns the property the
--- path refers to. That's a deliberate trade-off, not an oversight:
--- a proper ownership check needs a properties row to exist before
--- upload starts, which conflicts with the current create-flow (photos
--- upload before the property is saved). Flagging this as real,
--- unresolved hardening work — not hidden.
-create policy "authenticated users upload property photos" on storage.objects
-  for insert with check (bucket_id = 'property-photos' and auth.role() = 'authenticated');
-create policy "authenticated users update property photos" on storage.objects
-  for update using (bucket_id = 'property-photos' and auth.role() = 'authenticated');
-create policy "authenticated users delete property photos" on storage.objects
-  for delete using (bucket_id = 'property-photos' and auth.role() = 'authenticated');
+-- Ownership-checked: a landlord can only write into the folder for a
+-- property they actually own. property-upload.html creates an empty
+-- draft properties row before any photo upload starts, specifically
+-- so this check has something to match against from the first upload.
+create policy "landlords upload own property photos" on storage.objects
+  for insert with check (
+    bucket_id = 'property-photos'
+    and exists (select 1 from properties p where p.id::text = (storage.foldername(name))[1] and p.landlord_id = auth.uid())
+  );
+create policy "landlords update own property photos" on storage.objects
+  for update using (
+    bucket_id = 'property-photos'
+    and exists (select 1 from properties p where p.id::text = (storage.foldername(name))[1] and p.landlord_id = auth.uid())
+  );
+create policy "landlords delete own property photos" on storage.objects
+  for delete using (
+    bucket_id = 'property-photos'
+    and exists (select 1 from properties p where p.id::text = (storage.foldername(name))[1] and p.landlord_id = auth.uid())
+  );
