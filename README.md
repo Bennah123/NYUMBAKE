@@ -9,7 +9,7 @@ NYUMBAKE is a digital rental marketplace that connects tenants directly with pro
 
 **Initial launch:** Nairobi, Kenya · **Future expansion:** across Kenya
 
-🌐 **Live site:** [nyumbake-nine.vercel.app](https://nyumbake-nine.vercel.app)
+🌐 **Live site:** [nyumbake-kenya.vercel.app](https://nyumbake-kenya.vercel.app)
 
 > 🚧 NYUMBAKE is under active development. See [Progress](#progress) for what is working so far.
 
