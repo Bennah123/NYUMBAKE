@@ -1,4 +1,7 @@
-import { supabase, logAudit } from './supabase-client.js';
+import { supabase } from './supabase-client.js';
+import { requireUser, isAdmin, signOutAndGoHome } from './auth.js';
+import { escapeHtml } from './validation.js';
+import { toast } from './notifications.js';
 
 const loadingEl = document.getElementById('loading-state');
 const deniedEl = document.getElementById('denied-state');
@@ -20,17 +23,14 @@ const STATUS_LABELS = {
 };
 
 async function init() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    window.location.href = 'tenant-signup.html?redirect=admin-dashboard.html';
-    return;
-  }
+  const user = await requireUser('admin-dashboard.html');
+  if (!user) return;
   currentUser = user;
 
-  const { data: adminRow } = await supabase.from('admins').select('id').eq('id', user.id).maybeSingle();
+  const allowed = await isAdmin();
   loadingEl.style.display = 'none';
 
-  if (!adminRow) {
+  if (!allowed) {
     deniedEl.style.display = 'block';
     return;
   }
@@ -82,11 +82,11 @@ async function loadReports() {
 
     row.innerHTML = `
       <div style="display:flex; justify-content:space-between; gap:10px; margin-bottom:6px;">
-        <strong>${propertyName}</strong>
+        <strong>${escapeHtml(propertyName)}</strong>
         <span style="font-size:12px; color:var(--muted)">${when}</span>
       </div>
-      <div style="font-size:13px; margin-bottom:4px;"><strong>${REASON_LABELS[report.reason] || report.reason}</strong> — reported by ${reporterName}</div>
-      ${report.description ? `<div style="font-size:13px; color:var(--muted); margin-bottom:10px;">${report.description}</div>` : ''}
+      <div style="font-size:13px; margin-bottom:4px;"><strong>${escapeHtml(REASON_LABELS[report.reason] || report.reason)}</strong> — reported by ${escapeHtml(reporterName)}</div>
+      ${report.description ? `<div style="font-size:13px; color:var(--muted); margin-bottom:10px;">${escapeHtml(report.description)}</div>` : ''}
     `;
 
     const actions = document.createElement('div');
@@ -98,7 +98,8 @@ async function loadReports() {
     archiveBtn.textContent = 'Archive property';
     archiveBtn.addEventListener('click', async () => {
       if (!confirm(`Archive "${propertyName}"? It will be removed from Browse.`)) return;
-      await supabase.from('properties').update({ listing_status: 'archived' }).eq('id', report.property_id);
+      const { error } = await supabase.from('properties').update({ listing_status: 'archived' }).eq('id', report.property_id);
+      if (error) return toast(error.message, 'error');
       await resolveReport(report, 'resolved', 'Property archived');
     });
 
@@ -124,7 +125,8 @@ async function resolveReport(report, status, notes) {
     resolved_by: currentUser.id,
     resolved_at: new Date().toISOString(),
   }).eq('id', report.id);
-  if (error) return alert(error.message);
+  if (error) return toast(error.message, 'error');
+  toast('Report updated.', 'success');
   loadReports();
   loadProperties();
 }
@@ -197,14 +199,9 @@ async function loadProperties() {
 async function moderateProperty(property, newStatus) {
   if (!confirm(`Set "${property.name}" to ${newStatus}?`)) return;
   const { error } = await supabase.from('properties').update({ listing_status: newStatus }).eq('id', property.id);
-  if (error) return alert(error.message);
-  await logAudit(
-    property.id,
-    property.landlord_id,
-    'admin_listing_status_changed',
-    { from: property.listing_status, to: newStatus },
-    currentUser.id
-  );
+  if (error) return toast(error.message, 'error');
+  // The audit entry is written by a database trigger, attributed to this admin.
+  toast(`"${property.name}" set to ${newStatus}.`, 'success');
   await loadProperties();
   await loadAuditLog();
 }
@@ -227,7 +224,7 @@ async function loadLandlords() {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; font-size:13px;';
     const count = (l.properties || []).length;
-    row.innerHTML = `<div><strong>${l.full_name}</strong><div style="color:var(--muted); font-size:12px">${l.phone}</div></div><div style="color:var(--muted)">${count} propert${count === 1 ? 'y' : 'ies'}</div>`;
+    row.innerHTML = `<div><strong>${escapeHtml(l.full_name)}</strong><div style="color:var(--muted); font-size:12px">${escapeHtml(l.phone)}</div></div><div style="color:var(--muted)">${count} propert${count === 1 ? 'y' : 'ies'}</div>`;
     container.appendChild(row);
   });
 }
@@ -255,15 +252,12 @@ async function loadAuditLog() {
     details.style.color = 'var(--muted)';
     details.textContent = JSON.stringify(entry.details);
     const headline = document.createElement('div');
-    headline.innerHTML = `<strong>${entry.action}</strong> — ${when}`;
+    headline.innerHTML = `<strong>${escapeHtml(entry.action)}</strong> — ${escapeHtml(when)}`;
     row.append(headline, details);
     container.appendChild(row);
   });
 }
 
-document.getElementById('logout-btn')?.addEventListener('click', async () => {
-  await supabase.auth.signOut();
-  window.location.href = 'index.html';
-});
+document.getElementById('logout-btn')?.addEventListener('click', signOutAndGoHome);
 
 init();

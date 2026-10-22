@@ -61,6 +61,7 @@
 
 <script type="module">
   import { supabase } from './js/supabase-client.js';
+  import { normalizeKenyanPhone } from './js/validation.js';
 
   const statusEl = document.getElementById('status');
   const showStatus = (msg, type) => {
@@ -81,15 +82,10 @@
 
   document.getElementById('send-otp').addEventListener('click', async () => {
     const full_name = document.getElementById('full_name').value.trim();
-    let phone = document.getElementById('phone').value.trim();
+    const phone = normalizeKenyanPhone(document.getElementById('phone').value);
 
     if (!full_name) return showStatus('Enter your full name.', 'error');
-    // Normalise 07XXXXXXXX -> +2547XXXXXXXX
-    phone = phone.replace(/\s+/g, '');
-    if (/^0[71]\d{8}$/.test(phone)) phone = '+254' + phone.slice(1);
-    if (!/^\+254[71]\d{8}$/.test(phone)) {
-      return showStatus('Enter a valid Kenyan phone number.', 'error');
-    }
+    if (!phone) return showStatus('Enter a valid Kenyan phone number.', 'error');
 
     const { error } = await supabase.auth.signInWithOtp({ phone });
     if (error) return showStatus(error.message, 'error');

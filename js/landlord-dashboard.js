@@ -1,11 +1,13 @@
-import { supabase, logAudit, initiateMpesaPayment, pollPaymentStatus } from './supabase-client.js';
+import { supabase, initiateMpesaPayment, pollPaymentStatus } from './supabase-client.js';
+import { requireLandlord, signOutAndGoHome } from './auth.js';
+import { normalizeKenyanPhone, escapeHtml } from './validation.js';
+import { toast } from './notifications.js';
 
 const loadingEl = document.getElementById('loading-state');
 const emptyEl = document.getElementById('empty-state');
 const contentEl = document.getElementById('dashboard-content');
 const propertiesEl = document.getElementById('properties-list');
 
-let currentUser = null;
 let currentLandlordPhone = null;
 
 function daysSince(dateStr) {
@@ -20,24 +22,10 @@ function badge(text, variant) {
 }
 
 async function loadDashboard() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    window.location.href = 'landlord-signup.html';
-    return;
-  }
-  currentUser = user;
-
-  const { data: landlordRow } = await supabase
-    .from('landlords')
-    .select('id, phone')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (!landlordRow) {
-    window.location.href = 'landlord-signup.html';
-    return;
-  }
-  currentLandlordPhone = landlordRow.phone;
+  const session = await requireLandlord();
+  if (!session) return;
+  const { user, landlord } = session;
+  currentLandlordPhone = landlord.phone;
 
   const { data: properties, error } = await supabase
     .from('properties')
@@ -46,6 +34,8 @@ async function loadDashboard() {
     .order('created_at', { ascending: false });
 
   loadingEl.style.display = 'none';
+
+  if (error) toast('Could not load your properties: ' + error.message, 'error');
 
   if (error || !properties || properties.length === 0) {
     emptyEl.style.display = 'block';
@@ -93,10 +83,10 @@ function renderProperties(properties) {
     const titleWrap = document.createElement('div');
     const h2 = document.createElement('h2');
     h2.style.marginBottom = '4px';
-    h2.textContent = property.name;
+    h2.textContent = property.name || 'Untitled draft';
     const sub = document.createElement('p');
     sub.style.cssText = 'margin:0; color:var(--muted); font-size:13px;';
-    sub.textContent = `${property.city} · ${property.estate}`;
+    sub.textContent = property.city ? `${property.city} · ${property.estate}` : 'Not filled in yet';
     titleWrap.append(h2, sub);
 
     const [label, variant] = STATUS_LABELS[property.listing_status] || STATUS_LABELS.draft;
@@ -111,7 +101,7 @@ function renderProperties(properties) {
     editLink.href = `property-upload.html?property=${property.id}`;
     actions.appendChild(editLink);
 
-    if (property.listing_status !== 'published') {
+    if (property.listing_status === 'draft') {
       const publishBtn = document.createElement('button');
       publishBtn.type = 'button';
       publishBtn.className = 'btn btn-primary';
@@ -119,25 +109,14 @@ function renderProperties(properties) {
       publishBtn.addEventListener('click', () => payToPublish(property));
       actions.appendChild(publishBtn);
     } else {
-      const unpublishBtn = document.createElement('button');
-      unpublishBtn.type = 'button';
-      unpublishBtn.className = 'btn btn-light';
-      unpublishBtn.textContent = 'Unpublish';
-      unpublishBtn.addEventListener('click', () => updateListingStatus(property, 'draft'));
-      actions.appendChild(unpublishBtn);
-    }
-
-    if (property.listing_status !== 'archived') {
-      const archiveBtn = document.createElement('button');
-      archiveBtn.type = 'button';
-      archiveBtn.className = 'btn btn-light';
-      archiveBtn.textContent = 'Archive';
-      archiveBtn.addEventListener('click', () => {
-        if (confirm(`Archive "${property.name}"? It will be removed from Browse.`)) {
-          updateListingStatus(property, 'archived');
-        }
-      });
-      actions.appendChild(archiveBtn);
+      // The database rejects listing_status changes from landlords (trigger
+      // guard_property_listing_status), so don't offer buttons that can only fail.
+      const note = document.createElement('span');
+      note.style.cssText = 'align-self:center; font-size:12px; color:var(--muted);';
+      note.textContent = property.listing_status === 'published'
+        ? 'To unpublish or archive this listing, contact NYUMBAKE support.'
+        : 'This listing was archived by NYUMBAKE.';
+      actions.appendChild(note);
     }
 
     if (property.listing_status === 'draft') {
@@ -149,7 +128,8 @@ function renderProperties(properties) {
       deleteBtn.addEventListener('click', async () => {
         if (!confirm(`Permanently delete "${property.name || 'this draft'}"? This can't be undone.`)) return;
         const { error } = await supabase.from('properties').delete().eq('id', property.id);
-        if (error) return alert(error.message);
+        if (error) return toast(error.message, 'error');
+        toast('Draft deleted.', 'success');
         loadDashboard();
       });
       actions.appendChild(deleteBtn);
@@ -188,7 +168,7 @@ function renderProperties(properties) {
       toggleBtn.type = 'button';
       toggleBtn.className = 'btn btn-light';
       toggleBtn.textContent = unit.availability === 'vacant' ? 'Mark as rented' : 'Mark as vacant';
-      toggleBtn.addEventListener('click', () => toggleAvailability(property, unit));
+      toggleBtn.addEventListener('click', () => toggleAvailability(unit));
       rightWrap.appendChild(toggleBtn);
 
       row.append(info, rightWrap);
@@ -201,43 +181,37 @@ function renderProperties(properties) {
 }
 
 async function payToPublish(property) {
-  const phone = prompt('M-Pesa number to pay the listing fee (KES 300):', currentLandlordPhone || '');
-  if (!phone) return;
+  const raw = prompt('M-Pesa number to pay the listing fee (KES 300):', currentLandlordPhone || '');
+  if (!raw) return;
+  const phone = normalizeKenyanPhone(raw);
+  if (!phone) return toast('That doesn\'t look like a Kenyan mobile number.', 'error');
 
   try {
     const { paymentId } = await initiateMpesaPayment('property_publish', { propertyId: property.id, phone });
-    alert('Check your phone and enter your M-Pesa PIN to complete the payment.');
+    toast('Check your phone and enter your M-Pesa PIN to complete the payment.', 'info', 10000);
     const status = await pollPaymentStatus(paymentId);
 
     if (status === 'completed') {
-      await logAudit(property.id, currentUser.id, 'listing_status_changed', { from: property.listing_status, to: 'published', via: 'payment' });
-      alert(`"${property.name}" is now published.`);
+      // Publishing itself is done server-side by the payment callback; this just refreshes.
+      toast(`"${property.name}" is now published.`, 'success');
       loadDashboard();
     } else if (status === 'timeout') {
-      alert("We haven't heard back yet. If you completed the payment, refresh this page in a minute — it may just be a delayed confirmation.");
+      toast("We haven't heard back yet. If you completed the payment, refresh in a minute — confirmations can be delayed.", 'error', 9000);
     } else {
-      alert('Payment was not completed. The property is still a draft.');
+      toast('Payment was not completed. The property is still a draft.', 'error');
     }
   } catch (err) {
-    alert(err.message || 'Could not start the payment. Try again.');
+    toast(err.message || 'Could not start the payment. Try again.', 'error');
   }
 }
 
-async function updateListingStatus(property, status) {
-  const { error } = await supabase.from('properties').update({ listing_status: status }).eq('id', property.id);
-  if (error) return alert(error.message);
-  await logAudit(property.id, currentUser.id, 'listing_status_changed', { from: property.listing_status, to: status });
-  loadDashboard();
-}
-
-async function toggleAvailability(property, unit) {
+async function toggleAvailability(unit) {
   const newStatus = unit.availability === 'vacant' ? 'rented' : 'vacant';
   const { error } = await supabase
     .from('units')
     .update({ availability: newStatus, availability_updated_at: new Date().toISOString() })
     .eq('id', unit.id);
-  if (error) return alert(error.message);
-  await logAudit(property.id, currentUser.id, 'availability_changed', { unit_id: unit.id, from: unit.availability, to: newStatus });
+  if (error) return toast(error.message, 'error');
   loadDashboard();
 }
 
@@ -245,7 +219,7 @@ async function loadEnquiries() {
   const container = document.getElementById('enquiries-list');
   container.innerHTML = '';
 
-  const [{ data: enquiries }, { data: viewings }] = await Promise.all([
+  const [{ data: enquiries, error: enqError }, { data: viewings, error: viewError }] = await Promise.all([
     supabase.from('enquiries')
       .select('*, properties(name), units(unit_type, size_label), tenants(full_name)')
       .order('created_at', { ascending: false }),
@@ -253,6 +227,8 @@ async function loadEnquiries() {
       .select('*, properties(name), units(unit_type, size_label), tenants(full_name)')
       .order('created_at', { ascending: false }),
   ]);
+
+  if (enqError || viewError) toast('Could not load enquiries: ' + (enqError || viewError).message, 'error');
 
   const items = [
     ...(enquiries || []).map((e) => ({ ...e, kind: 'enquiry' })),
@@ -275,7 +251,7 @@ async function loadEnquiries() {
     const header = document.createElement('div');
     header.style.cssText = 'display:flex; justify-content:space-between; gap:10px; margin-bottom:8px;';
     const left = document.createElement('div');
-    left.innerHTML = `<strong>${tenantName}</strong> — ${propertyName}${unitLabel ? ' (' + unitLabel + ')' : ''}`;
+    left.innerHTML = `<strong>${escapeHtml(tenantName)}</strong> — ${escapeHtml(propertyName)}${unitLabel ? ' (' + escapeHtml(unitLabel) + ')' : ''}`;
     const right = document.createElement('div');
     right.appendChild(badge(
       item.kind === 'enquiry'
@@ -307,7 +283,7 @@ async function loadEnquiries() {
       btn.textContent = 'Mark as responded';
       btn.addEventListener('click', async () => {
         const { error } = await supabase.from('enquiries').update({ status: 'responded' }).eq('id', item.id);
-        if (error) return alert(error.message);
+        if (error) return toast(error.message, 'error');
         loadEnquiries();
       });
       row.appendChild(btn);
@@ -340,13 +316,10 @@ async function loadEnquiries() {
 async function respondToViewing(item, newStatus) {
   const response = prompt(newStatus === 'confirmed' ? 'Optional note for the tenant (e.g. exact meeting point):' : 'Optional reason (shown to the tenant):') || null;
   const { error } = await supabase.from('viewing_requests').update({ status: newStatus, response }).eq('id', item.id);
-  if (error) return alert(error.message);
+  if (error) return toast(error.message, 'error');
   loadEnquiries();
 }
 
-document.getElementById('logout-btn')?.addEventListener('click', async () => {
-  await supabase.auth.signOut();
-  window.location.href = 'index.html';
-});
+document.getElementById('logout-btn')?.addEventListener('click', signOutAndGoHome);
 
 loadDashboard();

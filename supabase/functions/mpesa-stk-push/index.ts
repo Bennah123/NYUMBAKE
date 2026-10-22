@@ -1,83 +1,179 @@
-// supabase/functions/mpesa-callback/index.ts
+// supabase/functions/mpesa-stk-push/index.ts
 //
-// Safaricom calls this directly after the tenant/landlord completes
-// (or cancels) the STK push on their phone. This endpoint MUST be
-// deployed with JWT verification OFF — Safaricom doesn't send a
-// Supabase auth token, it's not a logged-in user calling this:
+// Initiates a Daraja STK push for one of two purposes: publishing a
+// property, or unlocking a unit's real contact/location details.
+// Deploy with default JWT verification ON (this one requires a logged-in
+// caller) — unlike mpesa-callback, which must be public.
 //
-//   supabase functions deploy mpesa-callback --no-verify-jwt
+// Required secrets (set via `supabase secrets set`):
+//   MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,
+//   MPESA_PASSKEY, MPESA_ENV ("sandbox" or "production")
+//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (Supabase sets these automatically)
 //
-// This is the only privileged write path for payments/contact_unlocks/
-// properties.listing_status in the whole payment flow. The frontend
-// never sets "paid" on anything directly — only this function does,
-// and only after Safaricom confirms it.
+// PRICING PLACEHOLDER — these are not real numbers, just something to
+// ship with. Change them before this touches real money.
+const PRICING_KES = {
+  property_publish: 300,
+  contact_reveal: 50,
+};
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+function daraja_base_url(): string {
+  const env = Deno.env.get("MPESA_ENV") ?? "sandbox";
+  return env === "production"
+    ? "https://api.safaricom.co.ke"
+    : "https://sandbox.safaricom.co.ke";
+}
+
+async function getAccessToken(): Promise<string> {
+  const key = Deno.env.get("MPESA_CONSUMER_KEY")!;
+  const secret = Deno.env.get("MPESA_CONSUMER_SECRET")!;
+  const auth = btoa(`${key}:${secret}`);
+  const res = await fetch(
+    `${daraja_base_url()}/oauth/v1/generate?grant_type=client_credentials`,
+    { headers: { Authorization: `Basic ${auth}` } }
+  );
+  if (!res.ok) throw new Error(`Daraja auth failed: ${res.status}`);
+  const data = await res.json();
+  return data.access_token;
+}
+
+function timestampNow(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    d.getFullYear().toString() +
+    pad(d.getMonth() + 1) +
+    pad(d.getDate()) +
+    pad(d.getHours()) +
+    pad(d.getMinutes()) +
+    pad(d.getSeconds())
+  );
+}
+
+// Daraja wants 2547XXXXXXXX with no plus sign.
+function normalizePhone(raw: string): string | null {
+  let phone = raw.replace(/\s+/g, "");
+  if (/^0[71]\d{8}$/.test(phone)) phone = "254" + phone.slice(1);
+  if (/^\+254[71]\d{8}$/.test(phone)) phone = phone.slice(1);
+  return /^254[71]\d{8}$/.test(phone) ? phone : null;
+}
+
 Deno.serve(async (req) => {
-  // Safaricom expects a 200 with this exact shape no matter what —
-  // otherwise it retries the callback repeatedly.
-  const ack = () =>
-    new Response(JSON.stringify({ ResultCode: 0, ResultDesc: "Accepted" }), {
-      headers: { "Content-Type": "application/json" },
-    });
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
 
   try {
-    const body = await req.json();
-    const stkCallback = body?.Body?.stkCallback;
-    if (!stkCallback) return ack();
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
+    }
 
-    const { CheckoutRequestID, ResultCode, CallbackMetadata } = stkCallback;
+    const body = await req.json();
+    const { purpose, propertyId, unitId, phone } = body;
+
+    if (!["property_publish", "contact_reveal"].includes(purpose)) {
+      return new Response(JSON.stringify({ error: "Invalid purpose" }), { status: 400 });
+    }
+    const normalizedPhone = normalizePhone(phone ?? "");
+    if (!normalizedPhone) {
+      return new Response(JSON.stringify({ error: "Invalid phone number" }), { status: 400 });
+    }
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: payment } = await admin
-      .from("payments")
-      .select("*")
-      .eq("checkout_request_id", CheckoutRequestID)
-      .maybeSingle();
-
-    // Unknown checkout id, or already processed (duplicate callback) — ack and stop.
-    // This is the idempotency guard: Safaricom is documented to sometimes
-    // send the same callback more than once.
-    if (!payment || payment.status !== "pending") return ack();
-
-    if (ResultCode !== 0) {
-      await admin.from("payments").update({ status: "failed" }).eq("id", payment.id);
-      return ack();
+    // Ownership / eligibility checks happen server-side, not trusted from the client.
+    if (purpose === "property_publish") {
+      if (!propertyId) return new Response(JSON.stringify({ error: "propertyId required" }), { status: 400 });
+      const { data: property } = await admin
+        .from("properties").select("id, landlord_id, listing_status").eq("id", propertyId).maybeSingle();
+      if (!property || property.landlord_id !== user.id) {
+        return new Response(JSON.stringify({ error: "You don't own this property" }), { status: 403 });
+      }
+      // Archived listings were taken down by an admin; paying must not bring them back.
+      if (property.listing_status !== "draft") {
+        return new Response(JSON.stringify({ error: "Only draft listings can be published" }), { status: 400 });
+      }
+    } else {
+      if (!unitId) return new Response(JSON.stringify({ error: "unitId required" }), { status: 400 });
+      const { data: unit } = await admin
+        .from("units").select("id, property_id, properties(listing_status)")
+        .eq("id", unitId).maybeSingle();
+      if (!unit || unit.properties?.[0]?.listing_status !== "published") {
+        return new Response(JSON.stringify({ error: "Listing not available" }), { status: 400 });
+      }
     }
 
-    const items: Array<{ Name: string; Value: unknown }> = CallbackMetadata?.Item ?? [];
-    const getItem = (name: string) => items.find((i) => i.Name === name)?.Value;
-    const receipt = getItem("MpesaReceiptNumber") as string | undefined;
+    const amount = PRICING_KES[purpose as keyof typeof PRICING_KES];
+
+    const { data: payment, error: paymentError } = await admin
+      .from("payments")
+      .insert({
+        payer_id: user.id,
+        purpose,
+        property_id: purpose === "property_publish" ? propertyId : null,
+        unit_id: purpose === "contact_reveal" ? unitId : null,
+        amount,
+      })
+      .select()
+      .single();
+    if (paymentError) throw paymentError;
+
+    const accessToken = await getAccessToken();
+    const shortcode = Deno.env.get("MPESA_SHORTCODE")!;
+    const passkey = Deno.env.get("MPESA_PASSKEY")!;
+    const timestamp = timestampNow();
+    const password = btoa(`${shortcode}${passkey}${timestamp}`);
+    const callbackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/mpesa-callback`;
+
+    const stkRes = await fetch(`${daraja_base_url()}/mpesa/stkpush/v1/processrequest`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        BusinessShortCode: shortcode,
+        Password: password,
+        Timestamp: timestamp,
+        TransactionType: "CustomerPayBillOnline",
+        Amount: amount,
+        PartyA: normalizedPhone,
+        PartyB: shortcode,
+        PhoneNumber: normalizedPhone,
+        CallBackURL: callbackUrl,
+        AccountReference: `NYUMBAKE-${payment.id.slice(0, 8)}`,
+        TransactionDesc: purpose === "property_publish" ? "Property listing fee" : "Contact unlock fee",
+      }),
+    });
+    const stkData = await stkRes.json();
+
+    if (!stkRes.ok || stkData.ResponseCode !== "0") {
+      await admin.from("payments").update({ status: "failed" }).eq("id", payment.id);
+      return new Response(JSON.stringify({ error: stkData.errorMessage || "STK push failed" }), { status: 502 });
+    }
 
     await admin.from("payments").update({
-      status: "completed",
-      provider_receipt: receipt ?? null,
+      checkout_request_id: stkData.CheckoutRequestID,
+      merchant_request_id: stkData.MerchantRequestID,
     }).eq("id", payment.id);
 
-    if (payment.purpose === "property_publish" && payment.property_id) {
-      await admin.from("properties")
-        .update({ listing_status: "published" })
-        .eq("id", payment.property_id);
-    }
-
-    if (payment.purpose === "contact_reveal" && payment.unit_id) {
-      await admin.from("contact_unlocks").insert({
-        tenant_id: payment.payer_id,
-        unit_id: payment.unit_id,
-        payment_id: payment.id,
-      });
-    }
-
-    return ack();
+    return new Response(JSON.stringify({ paymentId: payment.id, checkoutRequestId: stkData.CheckoutRequestID }), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error(err);
-    // Still ack — an internal error here shouldn't make Safaricom hammer
-    // retries. The payment stays "pending" and can be investigated directly.
-    return ack();
+    return new Response(JSON.stringify({ error: "Internal error" }), { status: 500 });
   }
 });

@@ -88,6 +88,8 @@
 
 <script type="module">
   import { supabase } from './js/supabase-client.js';
+  import { ensureTenantProfile, safeRedirect } from './js/auth.js';
+  import { isValidEmail, passwordError } from './js/validation.js';
 
   const statusEl = document.getElementById('status');
   const showStatus = (msg, type) => {
@@ -120,7 +122,7 @@
   document.getElementById('to-signup').addEventListener('click', showSignup);
   document.getElementById('to-login').addEventListener('click', showLogin);
 
-  const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || 'tenant-browse.html';
+  const redirectTarget = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
 
   document.getElementById('forgot-password').addEventListener('click', async () => {
     const email = document.getElementById('li_email').value.trim();
@@ -131,15 +133,6 @@
     if (error) return showStatus(error.message, 'error');
     showStatus('Check your email for a reset link.', 'ok');
   });
-
-  async function ensureTenantProfile(user, fallbackName) {
-    const { error } = await supabase.from('tenants').upsert({
-      id: user.id,
-      full_name: user.user_metadata?.full_name || fallbackName || user.email,
-      email: user.email,
-    });
-    if (error) console.error('tenant profile upsert failed:', error.message);
-  }
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -157,16 +150,14 @@
     const email = document.getElementById('su_email').value.trim();
     const password = document.getElementById('su_password').value;
     if (!full_name) return showStatus('Enter your full name.', 'error');
-    if (password.length < 8) return showStatus('Password must be at least 8 characters.', 'error');
+    if (!isValidEmail(email)) return showStatus('Enter a valid email address.', 'error');
+    const pwError = passwordError(password);
+    if (pwError) return showStatus(pwError, 'error');
 
     const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {data: { full_name },
-      emailRedirectTo: `${window.location.origin}/tenant-signup.html`,
-      },
+      email, password, options: { data: { full_name } },
     });
-          if (error) return showStatus(error.message, 'error');
+    if (error) return showStatus(error.message, 'error');
 
     if (data.user) {
       await ensureTenantProfile(data.user, full_name);

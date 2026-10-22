@@ -1,4 +1,6 @@
 import { supabase, PHOTO_REQUIREMENTS, initiateMpesaPayment, pollPaymentStatus } from './supabase-client.js';
+import { getCurrentUser, requireUser, ensureTenantProfile } from './auth.js';
+import { normalizeKenyanPhone, escapeHtml } from './validation.js';
 
 const params = new URLSearchParams(window.location.search);
 const unitId = params.get('unit');
@@ -100,12 +102,8 @@ document.getElementById('enquiry-form').addEventListener('submit', async (e) => 
 
   if (!currentListing) return;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    const here = window.location.pathname + window.location.search;
-    window.location.href = `tenant-signup.html?redirect=${encodeURIComponent(here)}`;
-    return;
-  }
+  const user = await requireUser();
+  if (!user) return;
 
   const message = document.getElementById('enq_message').value.trim();
   const tenant_contact = document.getElementById('enq_contact').value.trim() || null;
@@ -116,11 +114,7 @@ document.getElementById('enquiry-form').addEventListener('submit', async (e) => 
   // Make sure a tenant profile row exists (covers OAuth sign-ins that
   // bounced straight back here before ever hitting tenant-signup.html's
   // own profile-creation step).
-  await supabase.from('tenants').upsert({
-    id: user.id,
-    full_name: user.user_metadata?.full_name || user.email,
-    email: user.email,
-  });
+  await ensureTenantProfile(user);
 
   const { error: enqError } = await supabase.from('enquiries').insert({
     tenant_id: user.id,
@@ -154,9 +148,11 @@ function showUnlockedContact(contact) {
   result.style.cssText = 'margin-top:16px; padding:14px; background:var(--surface-soft); border-radius:10px; font-size:14px;';
   result.innerHTML = `
     <div style="font-weight:600; margin-bottom:6px;">Contact &amp; location unlocked</div>
-    <div>Estate: ${contact.estate}</div>
-    <div>Phone: ${contact.contact_phone}</div>
-    ${contact.lat && contact.lng ? `<a href="https://maps.google.com/?q=${contact.lat},${contact.lng}" target="_blank" rel="noopener">View on Google Maps</a>` : ''}
+    <div>Estate: ${escapeHtml(contact.estate)}</div>
+    <div>Phone: ${escapeHtml(contact.contact_phone)}</div>
+    ${Number.isFinite(Number(contact.lat)) && Number.isFinite(Number(contact.lng)) && contact.lat && contact.lng
+      ? `<a href="https://maps.google.com/?q=${Number(contact.lat)},${Number(contact.lng)}" target="_blank" rel="noopener">View on Google Maps</a>`
+      : ''}
   `;
   document.getElementById('contact-btn').style.display = 'none';
   panel.insertBefore(result, panel.querySelector('div[style*="border-top"]'));
@@ -164,7 +160,7 @@ function showUnlockedContact(contact) {
 
 async function checkExistingUnlock() {
   if (!currentListing) return;
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return;
   const { data } = await supabase.rpc('get_unlocked_contact', { p_unit_id: currentListing.unit_id });
   if (data && data.length > 0) showUnlockedContact(data[0]);
@@ -186,12 +182,8 @@ document.getElementById('report-form').addEventListener('submit', async (e) => {
 
   if (!currentListing) return;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    const here = window.location.pathname + window.location.search;
-    window.location.href = `tenant-signup.html?redirect=${encodeURIComponent(here)}`;
-    return;
-  }
+  const user = await requireUser();
+  if (!user) return;
 
   const reason = document.getElementById('report-reason').value;
   const description = document.getElementById('report-description').value.trim() || null;
@@ -219,15 +211,13 @@ document.getElementById('contact-btn').addEventListener('click', async () => {
 
   if (!currentListing) return;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    const here = window.location.pathname + window.location.search;
-    window.location.href = `tenant-signup.html?redirect=${encodeURIComponent(here)}`;
-    return;
-  }
+  const user = await requireUser();
+  if (!user) return;
 
-  const phone = prompt('M-Pesa number to pay KES 50 and unlock contact details:', '');
-  if (!phone) return;
+  const rawPhone = prompt('M-Pesa number to pay KES 50 and unlock contact details:', '');
+  if (!rawPhone) return;
+  const phone = normalizeKenyanPhone(rawPhone);
+  if (!phone) return showContactStatus("That doesn't look like a Kenyan mobile number.", 'error');
 
   try {
     showContactStatus('Starting payment…', 'ok');

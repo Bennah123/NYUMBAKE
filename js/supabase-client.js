@@ -6,8 +6,8 @@
 // ============================================================
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const SUPABASE_URL = 'https://efhuuiauyudvqsjczysu.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmaHV1aWF1eXVkdnFzamN6eXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NTAxMTEsImV4cCI6MjEwNjMyNjExMX0.sXX-JLokJrNFitgKOiNhGLfmLNpoS_A9m2y4JuYA4Vc';
+const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -90,19 +90,8 @@ export const PHOTO_REQUIREMENTS = {
   },
 };
 
-// Log an action to property_audit_log. Call after any create/update.
-// actorId defaults to landlordId — pass it explicitly when the actor
-// isn't the property's own landlord (e.g. an admin moderation action).
-export async function logAudit(propertyId, landlordId, action, details = {}, actorId = null) {
-  const { error } = await supabase.from('property_audit_log').insert({
-    property_id: propertyId,
-    landlord_id: landlordId,
-    actor_id: actorId || landlordId,
-    action,
-    details,
-  });
-  if (error) console.error('audit log failed:', error.message);
-}
+// NOTE: audit logging is done by database triggers (see 003_fix_exposure_and_audit.sql),
+// not from the browser — clients can't write to property_audit_log at all.
 
 // ------------------------------------------------------------
 // M-Pesa payment helpers. These never write payment status
