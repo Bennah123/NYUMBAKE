@@ -13,6 +13,13 @@ function currentPage() {
   return window.location.pathname.split('/').pop() + window.location.search;
 }
 
+// Post-login redirects come from the URL (?redirect=...), so they're attacker-
+// controllable. Only plain same-site page names are allowed, e.g.
+// "property-details.html?unit=abc" — never "https://evil.com" or "javascript:...".
+export function safeRedirect(raw, fallback = 'tenant-browse.html') {
+  return /^[a-z0-9_-]+\.html(\?[A-Za-z0-9_=&%.-]*)?$/i.test(raw ?? '') ? raw : fallback;
+}
+
 export function loginUrl(returnTo = currentPage()) {
   return `tenant-signup.html?redirect=${encodeURIComponent(returnTo)}`;
 }

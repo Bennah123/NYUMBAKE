@@ -1951,22 +1951,6 @@ button {
   margin-top: 40px;
 }
 
-.footer-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 24px;
-  padding-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.footer-content p,
-.footer-copy {
-  color: #64748b;
-  font-size: 0.85rem;
-}
-
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 1000px) {
@@ -2001,11 +1985,6 @@ button {
 
   .filter-actions .btn {
     width: 100%;
-  }
-
-  .footer-content {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 

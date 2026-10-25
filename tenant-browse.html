@@ -11,7 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
 <body>
@@ -222,15 +223,56 @@
   <!-- ================= FOOTER ================= -->
 
   <footer class="site-footer">
-    <div class="container footer-content">
-      <a href="index.html" class="brand">
-        NYUMBA<span>KE</span>
-      </a>
-      <p>Find your place. Connect directly.</p>
-      <span class="footer-copy">
-        &copy; 2026 NYUMBAKE. All rights reserved.
-      </span>
+
+    <div class="container">
+
+      <div class="footer-main">
+
+        <div class="footer-brand">
+          <a href="index.html" class="brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+            NYUMBA<span>KE</span>
+          </a>
+
+          <p>
+            Making it easier to find a place to call home.
+            Connecting tenants and landlords directly,
+            starting in Nairobi.
+          </p>
+        </div>
+
+        <div class="footer-column">
+          <h3>Explore</h3>
+          <a href="index.html">Home</a>
+          <a href="tenant-browse.html">Browse homes</a>
+          <a href="tenant-signup.html">Create account</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>For landlords</h3>
+          <a href="landlord-signup.html">Get started</a>
+          <a href="property-upload.html">List a property</a>
+          <a href="landlord-dashboard.html">Dashboard</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>Account</h3>
+          <a href="tenant-signup.html">Log in / Sign up</a>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <span>
+          © <span id="current-year"></span> NYUMBAKE.
+          All rights reserved.
+        </span>
+
+        <span>Find your place. Directly.</span>
+      </div>
+
     </div>
+
   </footer>
 
 
@@ -239,6 +281,9 @@
   <script type="module" src="js/tenant-browse.js"></script>
 
   <script>
+    const yearEl = document.getElementById('current-year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
     const menuToggle = document.getElementById("menu-toggle");
     const navLinks = document.getElementById("nav-links");
 

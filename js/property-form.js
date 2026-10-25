@@ -123,7 +123,7 @@ function renderPhotoGrid(block, unitType, existingPhotos = {}) {
 
 async function uploadPhoto(block, category, file, slotEl) {
   if (!file) return;
-  const ext = file.name.split('.').pop();
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
   const unitPathSegment = block.dbId || block.clientId;
   const path = `${propertyId}/${unitPathSegment}/${category}.${ext}`;
   slotEl.innerHTML = `<span>Uploading…</span>`;
@@ -153,7 +153,7 @@ async function uploadVideo(block, file, slotEl) {
   const MAX_BYTES = 50 * 1024 * 1024; // matches Supabase's default per-file limit on the free tier
   if (file.size > MAX_BYTES) return showStatus('Video is too large — keep it under 50MB.', 'error');
 
-  const ext = file.name.split('.').pop();
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
   const unitPathSegment = block.dbId || block.clientId;
   const path = `${propertyId}/${unitPathSegment}/walkthrough_video.${ext}`;
   slotEl.innerHTML = '<span>Uploading…</span>';
@@ -288,7 +288,7 @@ async function initNewProperty() {
   // the user picks a file, long before Save) have a property row to
   // check ownership against. Save always updates this row from here on.
   const { error } = await supabase.from('properties').insert({
-    id: propertyId, landlord_id: user.id, name: '', city: '', estate: '', contact_phone: '',
+    id: propertyId, landlord_id: user.id, listing_status: 'draft', name: '', city: '', estate: '', contact_phone: '',
   });
   if (error) {
     showStatus('Could not start a new property: ' + error.message, 'error');
