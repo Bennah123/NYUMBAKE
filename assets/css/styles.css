@@ -117,7 +117,7 @@ p.lede { color: var(--muted); font-size: 15px; margin: 0 0 36px; max-width: 46ch
 label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-on-paper); margin-bottom: 6px; }
 label .optional { font-weight: 400; color: var(--muted); }
 
-input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="datetime-local"], select, textarea {
+input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="password"], input[type="datetime-local"], select, textarea {
   width: 100%;
   padding: 11px 14px;
   font-family: var(--font-body);

@@ -6,6 +6,7 @@
 <title>NYUMBAKE — Sign in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/styles.css">
 <style>
   body { margin: 0; }
@@ -58,9 +59,10 @@
 
       <form id="login-form">
         <label for="li_email">Email</label>
-        <input type="email" id="li_email" placeholder="you@example.com">
+        <input type="email" id="li_email" placeholder="you@example.com" autocomplete="email" autocapitalize="none" spellcheck="false">
         <label for="li_password">Password</label>
-        <input type="text" id="li_password" placeholder="Enter your password" style="-webkit-text-security:disc; text-security:disc">
+        <input type="password" id="li_password" placeholder="Enter your password" autocomplete="current-password">
+        <div id="resend-wrap" style="display:none; font-size:12px; margin:-6px 0 12px;">Didn't get the email? <a id="resend-confirmation" style="color:var(--secondary); cursor:pointer; font-weight:600;">Resend confirmation</a></div>
         <div style="text-align:right; margin:-10px 0 16px;"><a id="forgot-password" style="font-size:12px; color:var(--secondary); text-decoration:none; cursor:pointer;">Forgot password?</a></div>
         <button type="submit" class="primary" style="width:100%; margin-bottom:14px">Login</button>
         <div class="divider">or</div>
@@ -73,9 +75,9 @@
         <label for="su_name">Full name</label>
         <input type="text" id="su_name" placeholder="As landlords will see it">
         <label for="su_email">Email</label>
-        <input type="email" id="su_email" placeholder="you@example.com">
+        <input type="email" id="su_email" placeholder="you@example.com" autocomplete="email" autocapitalize="none" spellcheck="false">
         <label for="su_password">Password</label>
-        <input type="text" id="su_password" placeholder="At least 8 characters" style="-webkit-text-security:disc; text-security:disc">
+        <input type="password" id="su_password" placeholder="At least 8 characters" autocomplete="new-password">
         <button type="submit" class="primary" style="width:100%; margin-bottom:14px">Create account</button>
         <div class="divider">or</div>
         <button type="button" class="oauth" id="su_google">Continue with Google</button>
@@ -124,6 +126,14 @@
 
   const redirectTarget = safeRedirect(new URLSearchParams(window.location.search).get('redirect'));
 
+  document.getElementById('resend-confirmation').addEventListener('click', async () => {
+    const email = document.getElementById('li_email').value.trim();
+    if (!isValidEmail(email)) return showStatus('Enter your email above first.', 'error');
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    if (error) return showStatus(error.message, 'error');
+    showStatus('Confirmation email sent — check your inbox and spam.', 'ok');
+  });
+
   document.getElementById('forgot-password').addEventListener('click', async () => {
     const email = document.getElementById('li_email').value.trim();
     if (!email) return showStatus('Enter your email above first, then click "Forgot password?".', 'error');
@@ -139,7 +149,17 @@
     const email = document.getElementById('li_email').value.trim();
     const password = document.getElementById('li_password').value;
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return showStatus(error.message, 'error');
+    document.getElementById('resend-wrap').style.display = 'none';
+    if (error) {
+      if (error.code === 'email_not_confirmed' || /not confirmed/i.test(error.message)) {
+        document.getElementById('resend-wrap').style.display = 'block';
+        return showStatus('Your email isn\'t confirmed yet. Open the confirmation link we sent you (check spam too), then log in.', 'error');
+      }
+      if (error.code === 'invalid_credentials' || /invalid login/i.test(error.message)) {
+        return showStatus('Incorrect email or password. Forgotten it? Use "Forgot password?" below.', 'error');
+      }
+      return showStatus(error.message, 'error');
+    }
     await ensureTenantProfile(data.user);
     window.location.href = redirectTarget;
   });
@@ -159,12 +179,19 @@
     });
     if (error) return showStatus(error.message, 'error');
 
-    if (data.user) {
-      await ensureTenantProfile(data.user, full_name);
-      window.location.href = redirectTarget;
-    } else {
-      showStatus('Check your email to confirm your account.', 'ok');
+    // For an email that's already registered, Supabase returns a user with no
+    // identities instead of an error (so it doesn't reveal who has an account).
+    if (data.user && (data.user.identities || []).length === 0) {
+      return showStatus('An account with this email already exists. Log in instead, or use "Forgot password?".', 'error');
     }
+
+    // Email confirmation on => a user comes back but NO session. They are not logged in yet.
+    if (!data.session) {
+      return showStatus('Account created. Check your email for a confirmation link, then come back and log in.', 'ok');
+    }
+
+    await ensureTenantProfile(data.user, full_name);
+    window.location.href = redirectTarget;
   });
 
   function oauth(provider) {
